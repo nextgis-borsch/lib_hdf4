@@ -137,7 +137,15 @@ set (HDF4_HDF_SRC_CHDRS
     vgint.h
 )
 
+set(PARENT_TARGET_LINK_LIB ${TARGET_LINK_LIB})
+include(find_anyproject)
+set(TARGET_LINK_LIB ${PARENT_TARGET_LINK_LIB})
+
 add_library (${HDF4_SRC_LIB} ${LIB_TYPE} ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${CMAKE_BINARY_DIR}/h4config.h)
+set_target_properties(${HDF4_SRC_LIB} PROPERTIES VERSION ${VERSION} SOVERSION 1)
+
+target_link_extlibraries(${HDF4_SRC_LIB}) 
+
 if (WIN32)
   add_definitions (-DDOS_FS)
 endif (WIN32)

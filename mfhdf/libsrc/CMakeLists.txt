@@ -92,6 +92,8 @@ if (WIN32)
 endif (WIN32)
 
 add_library (${HDF4_MF_LIB} ${LIB_TYPE} ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})
+set_target_properties(${HDF4_MF_LIB} PROPERTIES VERSION ${VERSION} SOVERSION 1)
+
 if (HDF4_BUILD_XDR_LIB)
   if (WIN32)
     add_definitions (-DNO_SYS_XDR_INC)

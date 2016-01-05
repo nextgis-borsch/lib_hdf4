@@ -83,7 +83,7 @@ if (NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
         COMPONENT hdfdocuments
     )
     install(FILES man/gr_chunk.3 DESTINATION "${INSTALL_MAN_DIR}/man3")
-    install(FILES "man/hdf.1 man/hdfunpac.1" DESTINATION "${INSTALL_MAN_DIR}/man1")
+    install(FILES "man/hdf.1" "man/hdfunpac.1" DESTINATION "${INSTALL_MAN_DIR}/man1")
   endif ()
 endif ()
 

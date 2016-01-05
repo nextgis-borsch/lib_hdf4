@@ -137,17 +137,13 @@ set (HDF4_HDF_SRC_CHDRS
     vgint.h
 )
 
-set(PARENT_TARGET_LINK_LIB ${TARGET_LINK_LIB})
-include(find_anyproject)
-set(TARGET_LINK_LIB ${PARENT_TARGET_LINK_LIB})
-
 add_library (${HDF4_SRC_LIB} ${LIB_TYPE} ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${CMAKE_BINARY_DIR}/h4config.h)
 
 if (BUILD_SHARED_LIBS)
     if (WIN32)
-      set (LIB_VERSION ${H4_PACKAGE_VERSION_MAJOR})
+      set (LIB_VERSION ${HDF4_PACKAGE_VERSION_MAJOR})
     else ()
-      set (LIB_VERSION ${H4_PACKAGE_VERSION})
+      set (LIB_VERSION ${HDF4_PACKAGE_VERSION})
     endif ()
     set_target_properties (${HDF4_SRC_LIB} PROPERTIES VERSION ${LIB_VERSION})
     set_target_properties (${HDF4_SRC_LIB} PROPERTIES SOVERSION ${LIB_VERSION})
@@ -158,14 +154,19 @@ if (APPLE)
     option (H4_BUILD_WITH_INSTALL_NAME "Build with library install_name set to the installation path" OFF)
     if (H4_BUILD_WITH_INSTALL_NAME)
       set_target_properties(HDF4_SRC_LIB PROPERTIES
-          LINK_FLAGS "-current_version ${H4_PACKAGE_VERSION} -compatibility_version ${H4_PACKAGE_VERSION}"
+          LINK_FLAGS "-current_version ${HDF4_PACKAGE_VERSION} -compatibility_version ${HDF4_PACKAGE_VERSION}"
           INSTALL_NAME_DIR "${INSTALL_LIB_DIR}"
           BUILD_WITH_INSTALL_RPATH ${H4_BUILD_WITH_INSTALL_NAME}
       )
     endif ()
 endif ()
 
-target_link_extlibraries(${HDF4_SRC_LIB}) 
+if(TARGET_LINK_LIB)
+    target_link_libraries(${HDF4_SRC_LIB} ${TARGET_LINK_LIB}) 
+endif()
+if(DEPENDENCY_LIB)
+    add_dependencies(${HDF4_SRC_LIB} ${DEPENDENCY_LIB})  
+endif() 
 
 if (WIN32)
   add_definitions (-DDOS_FS)

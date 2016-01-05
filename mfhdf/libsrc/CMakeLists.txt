@@ -94,9 +94,9 @@ endif (WIN32)
 add_library (${HDF4_MF_LIB} ${LIB_TYPE} ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})
 if (BUILD_SHARED_LIBS)
     if (WIN32)
-      set (LIB_VERSION ${H4_PACKAGE_VERSION_MAJOR})
+      set (LIB_VERSION ${HDF4_PACKAGE_VERSION_MAJOR})
     else ()
-      set (LIB_VERSION ${H4_PACKAGE_VERSION})
+      set (LIB_VERSION ${HDF4_PACKAGE_VERSION})
     endif ()
     set_target_properties (${HDF4_MF_LIB} PROPERTIES VERSION ${LIB_VERSION})
     set_target_properties (${HDF4_MF_LIB} PROPERTIES SOVERSION ${LIB_VERSION})
@@ -107,7 +107,7 @@ if (APPLE)
     option (H4_BUILD_WITH_INSTALL_NAME "Build with library install_name set to the installation path" OFF)
     if (H4_BUILD_WITH_INSTALL_NAME)
       set_target_properties(HDF4_MF_LIB PROPERTIES
-          LINK_FLAGS "-current_version ${H4_PACKAGE_VERSION} -compatibility_version ${H4_PACKAGE_VERSION}"
+          LINK_FLAGS "-current_version ${HDF4_PACKAGE_VERSION} -compatibility_version ${HDF4_PACKAGE_VERSION}"
           INSTALL_NAME_DIR "${INSTALL_LIB_DIR}"
           BUILD_WITH_INSTALL_RPATH ${H4_BUILD_WITH_INSTALL_NAME}
       )

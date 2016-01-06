@@ -24,7 +24,7 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-include_directories (${CMAKE_CURENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 #-----------------------------------------------------------------------------
 # Generate the netcdf.h file containing user settings needed by compilation
 #-----------------------------------------------------------------------------

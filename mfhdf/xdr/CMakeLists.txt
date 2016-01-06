@@ -39,7 +39,7 @@ set (HDF4_MFHDF_XDR_PUBLIC
     xdr.h
 )
 
-include_directories (${CMAKE_CURENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 include_directories (${HDF4_HDFSOURCE_DIR})
 
 add_definitions (-DHDF)

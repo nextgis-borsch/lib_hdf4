@@ -103,7 +103,8 @@ function(find_extproject name)
        WORKING_DIRECTORY ${EP_BASE}/Build/${name}_EP RESULT_VARIABLE _rv)
     
     if(${_rv} EQUAL 0) 
-        set(${name}_FOUND TRUE PARENT_SCOPE)  
+        string(TOUPPER ${name}_FOUND IS_FOUND)
+        set(${IS_FOUND} TRUE PARENT_SCOPE)  
     endif()          
     
     include(${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake)  

@@ -33,13 +33,11 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
 set (HDF4_HDF_SRC_CSRCS
     atom.c
-    bitvect.c
-    cdeflate.c
+    bitvect.c    
     cnbit.c
     cnone.c
     crle.c
     cskphuff.c
-    cszip.c
     df24.c
     dfan.c
     dfcomp.c
@@ -47,7 +45,6 @@ set (HDF4_HDF_SRC_CSRCS
     dfgr.c
     dfgroup.c
     dfimcomp.c
-    dfjpeg.c
     dfknat.c
     dfkswap.c
     dfp.c
@@ -56,7 +53,6 @@ set (HDF4_HDF_SRC_CSRCS
     dfsd.c
     dfstubs.c
     dfufp2i.c
-    dfunjpeg.c
     dfutil.c
     dynarray.c
     glist.c
@@ -93,12 +89,10 @@ set (HDF4_HDF_SRC_CSRCS
 set (HDF4_HDF_SRC_CHDRS
     atom.h
     bitvect.h
-    cdeflate.h
     cnbit.h
     cnone.h
     crle.h
     cskphuff.h
-    cszip.h
     df.h
     dfan.h
     dfgr.h
@@ -136,6 +130,25 @@ set (HDF4_HDF_SRC_CHDRS
     vg.h
     vgint.h
 )
+
+if(JPEG_FOUND)
+    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}       
+        dfunjpeg.c
+        dfjpeg.c
+    )
+endif()
+
+if(ZLIB_FOUND)
+    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}     
+        cdeflate.c
+        cszip.c
+    )
+    
+    set(HDF4_HDF_SRC_CHDRS ${HDF4_HDF_SRC_CHDRS}  
+        cszip.h
+        cdeflate.h
+    )
+endif()
 
 add_library (${HDF4_SRC_LIB} ${LIB_TYPE} ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${CMAKE_BINARY_DIR}/h4config.h)
 

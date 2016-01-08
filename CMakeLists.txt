@@ -63,7 +63,7 @@ set (H4_F77_FUNC "H4_F77_FUNC(name,NAME) name ## _")
 set (H4_F77_FUNC_ "H4_F77_FUNC_(name,NAME) name ## __")
 
 include(find_anyproject)
-find_anyproject(ZLIB DEFAULT ON)
+find_anyproject(ZLIB REQUIRED)
 if (ZLIB_FOUND)
     set (HDFEOS_ENABLE_Z_LIB_SUPPORT ON)
     set (H4_HAVE_FILTER_DEFLATE 1)
@@ -72,7 +72,7 @@ if (ZLIB_FOUND)
     set (H4_ZLIB_HEADER "zlib.h")
 endif()
       
-find_anyproject(JPEG DEFAULT ON)
+find_anyproject(JPEG REQUIRED)
 if (JPEG_FOUND)
     set (HDFEOS_ENABLE_JPEG_LIB_SUPPORT ON)
     set (H4_HAVE_JPEGLIB_H 1)
@@ -197,6 +197,7 @@ endif ()
 if (HDF4_BUILD_XDR_LIB)
   add_subdirectory (${CMAKE_SOURCE_DIR}/mfhdf/xdr ${CMAKE_BINARY_DIR}/xdr)
   set(HDF4_TARGETS ${HDF4_TARGETS} ${HDF4_MF_XDR})
+  set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${HDF4_MF_XDR})
 endif ()
 
 #-----------------------------------------------------------------------------
@@ -204,6 +205,7 @@ endif ()
 #-----------------------------------------------------------------------------
 add_subdirectory (${CMAKE_SOURCE_DIR}/hdf/src    ${CMAKE_BINARY_DIR}/hdf/src )
 set(HDF4_TARGETS ${HDF4_TARGETS} ${HDF4_SRC_LIB})
+set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${HDF4_SRC_LIB})
 add_subdirectory (${CMAKE_SOURCE_DIR}/mfhdf/libsrc   ${CMAKE_BINARY_DIR}/mfhdf/libsrc)
 set(HDF4_TARGETS ${HDF4_TARGETS} ${HDF4_MF_LIB})
 

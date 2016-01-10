@@ -175,7 +175,7 @@ if (APPLE)
 endif ()
 
 if(TARGET_LINK_LIB)
-    target_link_libraries(${HDF4_SRC_LIB} ${TARGET_LINK_LIB}) 
+    target_link_libraries(${HDF4_SRC_LIB} PRIVATE ${TARGET_LINK_LIB}) 
 endif()
 if(DEPENDENCY_LIB)
     add_dependencies(${HDF4_SRC_LIB} ${DEPENDENCY_LIB})  

@@ -103,7 +103,7 @@ if (BUILD_SHARED_LIBS)
 endif ()
 
 if(TARGET_LINK_LIB)
-    target_link_libraries(${HDF4_MF_LIB} ${TARGET_LINK_LIB}) 
+    target_link_libraries(${HDF4_MF_LIB} PRIVATE ${TARGET_LINK_LIB}) 
 endif()
 if(DEPENDENCY_LIB)
     add_dependencies(${HDF4_MF_LIB} ${DEPENDENCY_LIB})  

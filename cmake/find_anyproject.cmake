@@ -27,6 +27,12 @@ cmake_policy(VERSION 2.8.12)
 if (POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif()
+if (POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW) # osx rpath
+endif()
+if (POLICY CMP0011)
+  cmake_policy(SET CMP0011 NEW) # policy setting
+endif()
         
 function(find_anyproject name)
 
@@ -117,7 +123,7 @@ function(target_link_extlibraries name)
     endif()    
     if(TARGET_LINK_LIB)
         list(REMOVE_DUPLICATES TARGET_LINK_LIB)
-        target_link_libraries(${name} PRIVATE ${TARGET_LINK_LIB})
+        target_link_libraries(${name} INTERFACE ${TARGET_LINK_LIB})
     endif()
     file(WRITE ${CMAKE_BINARY_DIR}/ext_options.cmake ${WITHOPT})
 endfunction()

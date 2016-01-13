@@ -211,7 +211,7 @@ if (HDF4_BUILD_XDR_LIB)
     add_dependencies (${HDF4_SRC_LIB} ${HDF4_MF_XDR})
 endif ()
 
-export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake)
+export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
 #install (EXPORT ${HDF4_TARGETS} DESTINATION ${INSTALL_SHARE_DIR}/cmake/${HDF4_PACKAGE}
 #      FILE ${HDF4_PACKAGE}-targets.cmake COMPONENT configinstall)
 

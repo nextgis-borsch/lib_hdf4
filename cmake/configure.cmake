@@ -202,3 +202,5 @@ configure_file(${CMAKE_MODULE_PATH}/h4config.h.cmakein ${CMAKE_CURRENT_BINARY_DI
 #add_definitions(-DHAVE_H4CONFIG_H) 
 add_definitions (-DHAVE_CONFIG_H)
 
+configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+

@@ -85,7 +85,6 @@ if (SZIP_FOUND)
 endif()  
 
 include(configure)
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 
 #-----------------------------------------------------------------------------
 # Option to use code coverage

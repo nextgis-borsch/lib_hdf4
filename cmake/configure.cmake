@@ -24,6 +24,10 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+if(CMAKE_GENERATOR_TOOLSET MATCHES "*xp")
+    add_definitions(-D_WIN32_WINNT=0x0501)
+endif()
+
 if (BUILD_SHARED_LIBS)
   set (H4_BUILT_AS_DYNAMIC_LIB 1)
   set (H4_ENABLE_SHARED_LIB YES)

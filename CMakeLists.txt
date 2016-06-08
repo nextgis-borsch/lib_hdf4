@@ -216,7 +216,6 @@ export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake EXPORT_LINK_IN
 #install (EXPORT ${HDF4_TARGETS} DESTINATION ${INSTALL_SHARE_DIR}/cmake/${HDF4_PACKAGE}
 #      FILE ${HDF4_PACKAGE}-targets.cmake COMPONENT configinstall)
 
-write_ext_options()
 include(install)
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake) 

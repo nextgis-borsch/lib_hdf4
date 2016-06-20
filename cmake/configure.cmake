@@ -202,9 +202,9 @@ set (HDF4_PACKAGE_URL "http://www.hdfgroup.org")
 set (HDF4_PACKAGE_BUGREPORT "help@hdfgroup.org")
 
 
-configure_file(${CMAKE_MODULE_PATH}/h4config.h.cmakein ${CMAKE_CURRENT_BINARY_DIR}/h4config.h IMMEDIATE @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/h4config.h.cmakein ${CMAKE_CURRENT_BINARY_DIR}/h4config.h IMMEDIATE @ONLY)
 #add_definitions(-DHAVE_H4CONFIG_H) 
 add_definitions (-DHAVE_CONFIG_H)
 
-configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 

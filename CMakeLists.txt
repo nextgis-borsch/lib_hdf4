@@ -41,6 +41,10 @@ set(INSTALL_SHARE_DIR ${CMAKE_INSTALL_DATADIR} CACHE INTERNAL "Installation dire
 set(INSTALL_DATA_DIR "${INSTALL_SHARE_DIR}/hdf4" CACHE INTERNAL "Installation directory for doc files" FORCE)
 set(INSTALL_MAN_DIR ${CMAKE_INSTALL_MANDIR} CACHE INTERNAL "Installation directory for manual pages" FORCE)
 
+if(WIN32)
+    set(INSTALL_INC_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for headers" FORCE)
+endif()
+
 include(util)
 check_version(H4_VERS_MAJOR H4_VERS_MINOR H4_VERS_RELEASE H4_VERS_SUBRELEASE)
 
@@ -209,9 +213,30 @@ if (HDF4_BUILD_XDR_LIB)
     add_dependencies (${HDF4_SRC_LIB} ${HDF4_MF_XDR})
 endif ()
 
-export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
+#export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
 #install (EXPORT ${HDF4_TARGETS} DESTINATION ${INSTALL_SHARE_DIR}/cmake/${HDF4_PACKAGE}
 #      FILE ${HDF4_PACKAGE}-targets.cmake COMPONENT configinstall)
+if (REGISTER_PACKAGE)
+    export(TARGETS ${HDF4_TARGETS} FILE HDF4-exports.cmake)
+
+    set(EXPORT_PACKAGE_NAME HDF4)
+    string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
+    set(EXPORT_PACKAGE_LIB_NAMES ${HDF4_TARGETS})
+
+    export(PACKAGE ${EXPORT_PACKAGE_NAME})
+
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(
+        ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}Config.cmake
+    INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}ConfigVersion.cmake
+        VERSION ${VERSION}
+        COMPATIBILITY AnyNewerVersion )
+else()
+    export(TARGETS ${LIB_NAME} FILE ${LIB_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
+endif()
 
 include(install)
 

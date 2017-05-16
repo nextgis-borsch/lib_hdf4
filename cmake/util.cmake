@@ -44,6 +44,10 @@ function(check_version major minor patch rev)
     set(${minor} ${H4_VERS_MINOR} PARENT_SCOPE)
     set(${patch} ${H4_VERS_RELEASE} PARENT_SCOPE)
     set(${rev} ${H4_VERS_SUBRELEASE} PARENT_SCOPE)
+    
+    # Store version string in file for installer needs
+    file(TIMESTAMP ${CMAKE_CURRENT_SOURCE_DIR}/hdf/src/hfile.h VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
+    file(WRITE ${CMAKE_BINARY_DIR}/version.str "${H4_VERS_MAJOR}.${H4_VERS_MINOR}.${H4_VERS_RELEASE}\n${VERSION_DATETIME}")
 
 endfunction(check_version)
 

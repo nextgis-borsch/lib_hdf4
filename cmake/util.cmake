@@ -38,13 +38,13 @@ function(check_version major minor patch rev)
         "\\1" H4_VERS_RELEASE ${_hfile_h_contents})
     string (REGEX REPLACE ".*#define[ \t]+LIBVER_SUBRELEASE[ \t]+\"([0-9A-Za-z.]*)\".*$"
         "\\1" H4_VERS_SUBRELEASE ${_hfile_h_contents})
-    
-    
+
+
     set(${major} ${H4_VERS_MAJOR} PARENT_SCOPE)
     set(${minor} ${H4_VERS_MINOR} PARENT_SCOPE)
     set(${patch} ${H4_VERS_RELEASE} PARENT_SCOPE)
     set(${rev} ${H4_VERS_SUBRELEASE} PARENT_SCOPE)
-    
+
     # Store version string in file for installer needs
     file(TIMESTAMP ${CMAKE_CURRENT_SOURCE_DIR}/hdf/src/hfile.h VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
     file(WRITE ${CMAKE_BINARY_DIR}/version.str "${H4_VERS_MAJOR}.${H4_VERS_MINOR}.${H4_VERS_RELEASE}\n${VERSION_DATETIME}")
@@ -57,10 +57,10 @@ function(report_version name ver)
     string(ASCII 27 Esc)
     set(BoldYellow  "${Esc}[1;33m")
     set(ColourReset "${Esc}[m")
-        
+
     message(STATUS "${BoldYellow}${name} version ${ver}${ColourReset}")
-    
-endfunction()  
+
+endfunction()
 
 # macro to find packages on the host OS
 macro( find_exthost_package )
@@ -68,17 +68,9 @@ macro( find_exthost_package )
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
-        if( CMAKE_HOST_WIN32 )
-            SET( WIN32 1 )
-            SET( UNIX )
-        elseif( CMAKE_HOST_APPLE )
-            SET( APPLE 1 )
-            SET( UNIX )
-        endif()
+
         find_package( ${ARGN} )
-        SET( WIN32 )
-        SET( APPLE )
-        SET( UNIX 1 )
+
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
@@ -94,17 +86,9 @@ macro( find_exthost_program )
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
-        if( CMAKE_HOST_WIN32 )
-            SET( WIN32 1 )
-            SET( UNIX )
-        elseif( CMAKE_HOST_APPLE )
-            SET( APPLE 1 )
-            SET( UNIX )
-        endif()
+
         find_program( ${ARGN} )
-        SET( WIN32 )
-        SET( APPLE )
-        SET( UNIX 1 )
+
         set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
         set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )

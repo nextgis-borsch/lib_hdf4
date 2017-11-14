@@ -25,18 +25,6 @@
 ################################################################################
 
 #-----------------------------------------------------------------------------
-# Add file(s) to CMake Install
-#-----------------------------------------------------------------------------
-
-if (NOT HDF4_INSTALL_NO_DEVELOPMENT)
-  install (
-      FILES ${CMAKE_BINARY_DIR}/h4config.h
-      DESTINATION ${INSTALL_INC_DIR}
-      COMPONENT headers
-  )
-endif ()
-
-#-----------------------------------------------------------------------------
 # Add Target(s) to CMake Install for import into other projects
 #-----------------------------------------------------------------------------
 if (NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
@@ -86,4 +74,3 @@ if (NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL)
     install(FILES "man/hdf.1" "man/hdfunpac.1" DESTINATION "${INSTALL_MAN_DIR}/man1")
   endif ()
 endif ()
-

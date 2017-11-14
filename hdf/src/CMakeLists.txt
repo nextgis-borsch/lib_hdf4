@@ -33,7 +33,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
 set (HDF4_HDF_SRC_CSRCS
     atom.c
-    bitvect.c    
+    bitvect.c
     cnbit.c
     cnone.c
     crle.c
@@ -129,69 +129,70 @@ set (HDF4_HDF_SRC_CHDRS
     vattr.h
     vg.h
     vgint.h
+    ${CMAKE_BINARY_DIR}/h4config.h
 )
 
 if(JPEG_FOUND)
-    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}       
+    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}
         dfunjpeg.c
         dfjpeg.c
     )
 endif()
 
 if(ZLIB_FOUND)
-    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}     
+    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}
         cdeflate.c
         cszip.c
     )
-    
-    set(HDF4_HDF_SRC_CHDRS ${HDF4_HDF_SRC_CHDRS}  
+
+    set(HDF4_HDF_SRC_CHDRS ${HDF4_HDF_SRC_CHDRS}
         cszip.h
         cdeflate.h
     )
 endif()
 
-add_library (${HDF4_SRC_LIB} ${LIB_TYPE} ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${CMAKE_BINARY_DIR}/h4config.h)
-
-if (BUILD_SHARED_LIBS)
-    if (WIN32)
-      set (LIB_VERSION ${HDF4_PACKAGE_VERSION_MAJOR})
-    else ()
-      set (LIB_VERSION ${HDF4_PACKAGE_VERSION})
-    endif ()
-    set_target_properties (${HDF4_SRC_LIB} PROPERTIES VERSION ${LIB_VERSION})
-    set_target_properties (${HDF4_SRC_LIB} PROPERTIES SOVERSION ${LIB_VERSION})
-endif ()
-
-#-- Apple Specific install_name for libraries
-if (APPLE)
-    option (H4_BUILD_WITH_INSTALL_NAME "Build with library install_name set to the installation path" OFF)
-    if (H4_BUILD_WITH_INSTALL_NAME)
-      set_target_properties(HDF4_SRC_LIB PROPERTIES
-          LINK_FLAGS "-current_version ${HDF4_PACKAGE_VERSION} -compatibility_version ${HDF4_PACKAGE_VERSION}"
-          INSTALL_NAME_DIR "${INSTALL_LIB_DIR}"
-          BUILD_WITH_INSTALL_RPATH ${H4_BUILD_WITH_INSTALL_NAME}
+set(LIB_NAME ${HDF4_SRC_LIB})
+if(BUILD_SHARED_LIBS)
+    add_library(${LIB_NAME} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
+    set_target_properties (${LIB_NAME} PROPERTIES
+        VERSION ${VERSION}
+        SOVERSION ${SO_VERSION})
+elseif(OSX_FRAMEWORK)
+    add_library(${LIB_NAME} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
+    set_target_properties(${LIB_NAME} PROPERTIES
+      FRAMEWORK TRUE
+      FRAMEWORK_VERSION ${FRAMEWORK_VERSION}
+      MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${VERSION}
+      MACOSX_FRAMEWORK_BUNDLE_VERSION ${VERSION}
+      MACOSX_FRAMEWORK_IDENTIFIER org.libhdf.libdf
+      XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+      PUBLIC_HEADER "${HDF4_HDF_SRC_CHDRS}"
+      VERSION ${VERSION}
+      SOVERSION ${SO_VERSION}
       )
-    endif ()
-endif ()
+else()
+    add_library(${LIB_NAME} STATIC ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
+endif()
 
 if(TARGET_LINK_LIB)
-    target_link_libraries(${HDF4_SRC_LIB} ${TARGET_LINK_LIB}) 
+    target_link_libraries(${HDF4_SRC_LIB} ${TARGET_LINK_LIB})
 endif()
 if(DEPENDENCY_LIB)
-    add_dependencies(${HDF4_SRC_LIB} ${DEPENDENCY_LIB})  
-endif() 
+    add_dependencies(${HDF4_SRC_LIB} ${DEPENDENCY_LIB})
+endif()
 
 if (WIN32)
   add_definitions (-DDOS_FS)
 endif (WIN32)
 
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS ${HDF4_SRC_LIB} 
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
+    install(TARGETS ${LIB_NAME}
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT applications
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
+        FRAMEWORK DESTINATION ${INSTALL_LIB_DIR}
+    )
 endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${HDF4_HDF_SRC_CHDRS} DESTINATION "${INSTALL_INC_DIR}")
+    install(FILES ${HDF4_HDF_SRC_CHDRS} DESTINATION ${INSTALL_INC_DIR} COMPONENT headers)
 endif()
-

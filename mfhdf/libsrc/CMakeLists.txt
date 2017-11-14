@@ -82,6 +82,10 @@ else (CYGWIN)
   include_directories (/usr/include/rpc)
 endif (CYGWIN)
 
+set(PUBLIC_HEADERS
+    ${HDF4_MFHDF_LIBSRC_CHDRS} ${HDF4_MFHDF_LIBSRC_XCHDRS}
+)
+
 include_directories (${HDF4_HDFSOURCE_DIR})
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -91,51 +95,51 @@ if (WIN32)
   add_definitions (-DDOS_FS -DSWAP)
 endif (WIN32)
 
-add_library (${HDF4_MF_LIB} ${LIB_TYPE} ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})
-if (BUILD_SHARED_LIBS)
-    if (WIN32)
-      set (LIB_VERSION ${HDF4_PACKAGE_VERSION_MAJOR})
-    else ()
-      set (LIB_VERSION ${HDF4_PACKAGE_VERSION})
-    endif ()
-    set_target_properties (${HDF4_MF_LIB} PROPERTIES VERSION ${LIB_VERSION})
-    set_target_properties (${HDF4_MF_LIB} PROPERTIES SOVERSION ${LIB_VERSION})
-endif ()
+set(LIB_NAME ${HDF4_MF_LIB})
+if(BUILD_SHARED_LIBS)
+    add_library(${LIB_NAME} SHARED ${HDF4_MFHDF_LIBSRC_CSRCS} ${PUBLIC_HEADERS})
+    set_target_properties (${LIB_NAME} PROPERTIES
+        VERSION ${VERSION}
+        SOVERSION ${SO_VERSION})
+elseif(OSX_FRAMEWORK)
+    add_library(${LIB_NAME} SHARED ${HDF4_MFHDF_LIBSRC_CSRCS} ${PUBLIC_HEADERS})
+    set_target_properties(${LIB_NAME} PROPERTIES
+      FRAMEWORK TRUE
+      FRAMEWORK_VERSION ${FRAMEWORK_VERSION}
+      MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${VERSION}
+      MACOSX_FRAMEWORK_BUNDLE_VERSION ${VERSION}
+      MACOSX_FRAMEWORK_IDENTIFIER org.libhdf.libmf
+      XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+      PUBLIC_HEADER "${PUBLIC_HEADERS}"
+      VERSION ${VERSION}
+      SOVERSION ${SO_VERSION}
+      )
+else()
+    add_library(${LIB_NAME} STATIC ${HDF4_MFHDF_LIBSRC_CSRCS} ${PUBLIC_HEADERS})
+endif()
 
 if(TARGET_LINK_LIB)
-    target_link_libraries(${HDF4_MF_LIB} ${TARGET_LINK_LIB}) 
+    target_link_libraries(${LIB_NAME} ${TARGET_LINK_LIB})
 endif()
 if(DEPENDENCY_LIB)
-    add_dependencies(${HDF4_MF_LIB} ${DEPENDENCY_LIB})  
-endif() 
-
-#-- Apple Specific install_name for libraries
-if (APPLE)
-    option (H4_BUILD_WITH_INSTALL_NAME "Build with library install_name set to the installation path" OFF)
-    if (H4_BUILD_WITH_INSTALL_NAME)
-      set_target_properties(HDF4_MF_LIB PROPERTIES
-          LINK_FLAGS "-current_version ${HDF4_PACKAGE_VERSION} -compatibility_version ${HDF4_PACKAGE_VERSION}"
-          INSTALL_NAME_DIR "${INSTALL_LIB_DIR}"
-          BUILD_WITH_INSTALL_RPATH ${H4_BUILD_WITH_INSTALL_NAME}
-      )
-    endif ()
-endif ()
+    add_dependencies(${LIB_NAME} ${DEPENDENCY_LIB})
+endif()
 
 if (HDF4_BUILD_XDR_LIB)
   if (WIN32)
     add_definitions (-DNO_SYS_XDR_INC)
   endif (WIN32)
-  include_directories (${HDF4_MFHDF_XDR_DIR})  
-endif (HDF4_BUILD_XDR_LIB)
+  include_directories (${HDF4_MFHDF_XDR_DIR})
+endif ()
 
-if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS ${HDF4_MF_LIB} 
-        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
+    install(TARGETS ${LIB_NAME}
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT applications
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
+        FRAMEWORK DESTINATION ${INSTALL_LIB_DIR}
+    )
 endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${HDF4_MFHDF_LIBSRC_CHDRS} ${HDF4_MFHDF_LIBSRC_XCHDRS} DESTINATION "${INSTALL_INC_DIR}")
+    install(FILES ${PUBLIC_HEADERS} DESTINATION ${INSTALL_INC_DIR} COMPONENT headers)
 endif()
-
-

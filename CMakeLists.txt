@@ -25,25 +25,41 @@
 ################################################################################
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
-project (hdf4 C CXX)
+project (hdf4)
 
-# some init settings
+## Some init settings
 set(CMAKE_COLOR_MAKEFILE ON)
-# set path to additional CMake modules
+# Set path to additional CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-include(GNUInstallDirs)
-
-set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
-set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
-set(INSTALL_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE INTERNAL "Installation directory for headers" FORCE)
-set(INSTALL_SHARE_DIR ${CMAKE_INSTALL_DATADIR} CACHE INTERNAL "Installation directory for share files" FORCE)
-set(INSTALL_DATA_DIR "${INSTALL_SHARE_DIR}/hdf4" CACHE INTERNAL "Installation directory for doc files" FORCE)
-set(INSTALL_MAN_DIR ${CMAKE_INSTALL_MANDIR} CACHE INTERNAL "Installation directory for manual pages" FORCE)
-
-if(WIN32)
-    set(INSTALL_INC_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for headers" FORCE)
+if(OSX_FRAMEWORK AND (BUILD_SHARED_LIBS OR BUILD_STATIC_LIBS))
+  message(FATAL_ERROR "Only OSX_FRAMEWORK key or any or both BUILD_SHARED_LIBS
+                       and BUILD_STATIC_LIBS keys are permitted")
 endif()
+
+if(OSX_FRAMEWORK)
+  set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE INTERNAL "Installation directory for executables" FORCE)
+  set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
+  # set(INSTALL_INC_DIR "${INSTALL_LIB_DIR}/${PROJECT_NAME}.framework/Headers" CACHE INTERNAL "Installation directory for headers" FORCE)
+  set(SKIP_INSTALL_HEADERS ON)
+  set(SKIP_INSTALL_FILES ON)
+  set(SKIP_INSTALL_EXPORT ON)
+  set(CMAKE_MACOSX_RPATH ON)
+  set(SKIP_INSTALL_DOCS ON)
+else()
+    include(GNUInstallDirs)
+
+    set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
+    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
+    set(INSTALL_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} CACHE INTERNAL "Installation directory for headers" FORCE)
+    set(INSTALL_SHARE_DIR ${CMAKE_INSTALL_DATADIR} CACHE INTERNAL "Installation directory for share files" FORCE)
+    set(INSTALL_DATA_DIR ${INSTALL_SHARE_DIR}/${PROJECT_NAME} CACHE INTERNAL "Installation directory for doc files" FORCE)
+    set(INSTALL_MAN_DIR ${CMAKE_INSTALL_MANDIR} CACHE INTERNAL "Installation directory for manual pages" FORCE)
+endif()
+
+# if(WIN32)
+#     set(INSTALL_INC_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for headers" FORCE)
+# endif()
 
 include(util)
 check_version(H4_VERS_MAJOR H4_VERS_MINOR H4_VERS_RELEASE H4_VERS_SUBRELEASE)
@@ -54,7 +70,12 @@ else()
     set(VERSION "${H4_VERS_MAJOR}.${H4_VERS_MINOR}.${H4_VERS_RELEASE}")
 endif()
 
-report_version(${PROJECT_NAME} "${VERSION}")  
+set(SO_VERSION ${H4_VERS_MAJOR})
+
+if(OSX_FRAMEWORK)
+    set(FRAMEWORK_VERSION "${H4_VERS_MAJOR}")
+endif()
+report_version(${PROJECT_NAME} "${VERSION}")
 
 if (MSVC OR MINGW)
   set (H4_HDSETVBUF "HDsetvbuf(F,S,M,Z) (((Z)>1)?setvbuf(F,S,M,Z):setvbuf(F,S,M,2))")
@@ -73,7 +94,7 @@ if (ZLIB_FOUND)
     set (H4_HAVE_LIBZ 1)
     set (H4_ZLIB_HEADER "zlib.h")
 endif()
-      
+
 find_anyproject(JPEG REQUIRED)
 if (JPEG_FOUND)
     set (HDFEOS_ENABLE_JPEG_LIB_SUPPORT ON)
@@ -81,14 +102,14 @@ if (JPEG_FOUND)
     set (H4_HAVE_LIBJPEG 1)
     set (H4_JPEGLIB_HEADER "jpeglib.h")
 endif()
-      
+
 find_anyproject(SZIP DEFAULT OFF)
 if (SZIP_FOUND)
     set (HDFEOS_ENABLE_SZIP_SUPPORT ON)
     set (H4_HAVE_FILTER_SZIP 1)
     set (H4_HAVE_SZLIB_H 1)
     set (H4_HAVE_LIBSZ 1)
-endif()  
+endif()
 
 include(configure)
 
@@ -99,7 +120,7 @@ option (HDF4_ENABLE_COVERAGE "Enable code coverage for Libraries and Programs" O
 if (HDF4_ENABLE_COVERAGE)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-    set (LDFLAGS "${LDFLAGS} -fprofile-arcs -ftest-coverage")   
+    set (LDFLAGS "${LDFLAGS} -fprofile-arcs -ftest-coverage")
 endif (HDF4_ENABLE_COVERAGE)
 
 #-----------------------------------------------------------------------------
@@ -107,9 +128,9 @@ endif (HDF4_ENABLE_COVERAGE)
 #-----------------------------------------------------------------------------
 option (HDF4_ENABLE_DEPRECATED_SYMBOLS "Enable deprecated public API symbols" ON)
 if (HDF4_ENABLE_DEPRECATED_SYMBOLS)
-  set (H4_NO_DEPRECATED_SYMBOLS 0)   
+  set (H4_NO_DEPRECATED_SYMBOLS 0)
 else ()
-  set (H4_NO_DEPRECATED_SYMBOLS 1)   
+  set (H4_NO_DEPRECATED_SYMBOLS 1)
 endif ()
 
 #-----------------------------------------------------------------------------
@@ -174,12 +195,6 @@ endif (CMAKE_COMPILER_IS_GNUCXX)
 set (HDF4_SRC_LIB   "hdf")
 set (HDF4_MF_LIB    "mfhdf")
 set (HDF4_MF_XDR    "xdr")
-if(BUILD_SHARED_LIBS)
-    set(LIB_TYPE SHARED)
-else()
-    set(LIB_TYPE STATIC)
-endif()
-
 set (HDF4_HDFSOURCE_DIR       ${CMAKE_SOURCE_DIR}/hdf/src)
 set (HDF4_MFHDFSOURCE_DIR     ${CMAKE_SOURCE_DIR}/mfhdf/libsrc)
 set (HDF4_MFHDF_XDR_DIR       ${CMAKE_SOURCE_DIR}/mfhdf/xdr)
@@ -213,16 +228,17 @@ if (HDF4_BUILD_XDR_LIB)
     add_dependencies (${HDF4_SRC_LIB} ${HDF4_MF_XDR})
 endif ()
 
-#export(TARGETS ${HDF4_TARGETS} FILE ${HDF4_SRC_LIB}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
-#install (EXPORT ${HDF4_TARGETS} DESTINATION ${INSTALL_SHARE_DIR}/cmake/${HDF4_PACKAGE}
-#      FILE ${HDF4_PACKAGE}-targets.cmake COMPONENT configinstall)
 if (REGISTER_PACKAGE)
-    export(TARGETS ${HDF4_TARGETS} FILE HDF4-exports.cmake)
+    export(TARGETS ${HDF4_TARGETS} FILE ${PROJECT_NAME}-exports.cmake)
 
-    set(EXPORT_PACKAGE_NAME HDF4)
+    set(EXPORT_PACKAGE_NAME hdf4)
     string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
     set(EXPORT_PACKAGE_LIB_NAMES ${HDF4_TARGETS})
-
+    if(OSX_FRAMEWORK)
+        set(EXPORT_PACKAGE_INC_DIRS ${INSTALL_LIB_DIR}/${HDF4_SRC_LIB}.framework/Headers ${INSTALL_LIB_DIR}/${HDF4_MF_LIB}.framework/Headers)
+    else()
+        set(EXPORT_PACKAGE_INC_DIRS ${INSTALL_INC_DIR})
+    endif()
     export(PACKAGE ${EXPORT_PACKAGE_NAME})
 
     include(CMakePackageConfigHelpers)
@@ -235,10 +251,9 @@ if (REGISTER_PACKAGE)
         VERSION ${VERSION}
         COMPATIBILITY AnyNewerVersion )
 else()
-    export(TARGETS ${LIB_NAME} FILE ${LIB_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
+    export(TARGETS ${HDF4_TARGETS} FILE ${PROJECT_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
 endif()
 
 include(install)
 
-add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake) 
-
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

@@ -29,7 +29,9 @@ function(check_version major minor patch rev)
     #-----------------------------------------------------------------------------
     # parse the full version number from hfile.h and include in H4_VERS_INFO
     #-----------------------------------------------------------------------------
-    file (READ ${CMAKE_SOURCE_DIR}/hdf/src/hfile.h _hfile_h_contents)
+    set(VERSION_FILE ${CMAKE_SOURCE_DIR}/hdf/src/hfile.h)
+
+    file(READ ${VERSION_FILE} _hfile_h_contents)
     string (REGEX REPLACE ".*#define[ \t]+LIBVER_MAJOR[ \t]+([0-9]*).*$"
         "\\1" H4_VERS_MAJOR ${_hfile_h_contents})
     string (REGEX REPLACE ".*#define[ \t]+LIBVER_MINOR[ \t]+([0-9]*).*$"
@@ -46,7 +48,7 @@ function(check_version major minor patch rev)
     set(${rev} ${H4_VERS_SUBRELEASE} PARENT_SCOPE)
 
     # Store version string in file for installer needs
-    file(TIMESTAMP ${CMAKE_CURRENT_SOURCE_DIR}/hdf/src/hfile.h VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
+    file(TIMESTAMP ${VERSION_FILE} VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
     file(WRITE ${CMAKE_BINARY_DIR}/version.str "${H4_VERS_MAJOR}.${H4_VERS_MINOR}.${H4_VERS_RELEASE}\n${VERSION_DATETIME}")
 
 endfunction(check_version)

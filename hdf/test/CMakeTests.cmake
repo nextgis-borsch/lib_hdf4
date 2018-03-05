@@ -273,17 +273,17 @@ if (BUILD_SHARED_LIBS)
     set (last_test "HDF_TEST-testhdf_thf${decade}-shared-clearall-objects")
   endforeach ()
 
-  add_test (NAME HDF_TEST-testhdf-shared COMMAND $<TARGET_FILE:testhdf-shared>)
-  set (passRegex "All tests were successful")
-  set_tests_properties (HDF_TEST-testhdf-shared PROPERTIES
-      PASS_REGULAR_EXPRESSION "${passRegex}"
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
-      LABELS ${PROJECT_NAME}
-  )
-  if (NOT "${last_test}" STREQUAL "")
-    set_tests_properties (HDF_TEST-testhdf-shared PROPERTIES DEPENDS ${last_test})
-  endif ()
-  set (last_test "HDF_TEST-testhdf-shared")
+  # add_test (NAME HDF_TEST-testhdf-shared COMMAND $<TARGET_FILE:testhdf-shared>)
+  # set (passRegex "All tests were successful")
+  # set_tests_properties (HDF_TEST-testhdf-shared PROPERTIES
+  #     PASS_REGULAR_EXPRESSION "${passRegex}"
+  #     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
+  #     LABELS ${PROJECT_NAME}
+  # )
+  # if (NOT "${last_test}" STREQUAL "")
+  #   set_tests_properties (HDF_TEST-testhdf-shared PROPERTIES DEPENDS ${last_test})
+  # endif ()
+  # set (last_test "HDF_TEST-testhdf-shared")
 
   #-- Adding test for buffer
   if (NOT WIN32)

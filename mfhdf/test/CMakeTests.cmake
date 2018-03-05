@@ -132,37 +132,37 @@ add_test (
         ${PROJECT_BINARY_DIR}/TEST
 )
 
-# add_test (NAME MFHDF_TEST-hdftest COMMAND $<TARGET_FILE:hdftest>)
-# set (passRegex "HDF-SD test passes")
-# set_tests_properties (MFHDF_TEST-hdftest PROPERTIES
-#     PASS_REGULAR_EXPRESSION "${passRegex}"
-#     DEPENDS MFHDF_TEST-clearall-objects
-#     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
-#     LABELS ${PROJECT_NAME}
-# )
+add_test (NAME MFHDF_TEST-hdftest COMMAND $<TARGET_FILE:hdftest>)
+set (passRegex "HDF-SD test passes")
+set_tests_properties (MFHDF_TEST-hdftest PROPERTIES
+    PASS_REGULAR_EXPRESSION "${passRegex}"
+    DEPENDS MFHDF_TEST-clearall-objects
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
+    LABELS ${PROJECT_NAME}
+)
 
-# add_test (NAME MFHDF_TEST-cdftest COMMAND "${CMAKE_COMMAND}"
-#             -D "TEST_PROGRAM=$<TARGET_FILE:cdftest>"
-#             -D "TEST_ARGS:STRING="
-#             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
-#             -D "TEST_OUTPUT=cdfout.new"
-#             -D "TEST_EXPECT=0"
-#             -D "TEST_REFERENCE=testout.sav"
-#             -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
-# )
-# set_tests_properties (MFHDF_TEST-cdftest PROPERTIES
-#     DEPENDS MFHDF_TEST-hdftest
-#     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
-#     LABELS ${PROJECT_NAME}
-# )
+add_test (NAME MFHDF_TEST-cdftest COMMAND "${CMAKE_COMMAND}"
+            -D "TEST_PROGRAM=$<TARGET_FILE:cdftest>"
+            -D "TEST_ARGS:STRING="
+            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
+            -D "TEST_OUTPUT=cdfout.new"
+            -D "TEST_EXPECT=0"
+            -D "TEST_REFERENCE=testout.sav"
+            -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
+)
+set_tests_properties (MFHDF_TEST-cdftest PROPERTIES
+    DEPENDS MFHDF_TEST-hdftest
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
+    LABELS ${PROJECT_NAME}
+)
 
-# add_test (NAME MFHDF_TEST-hdfnctest COMMAND $<TARGET_FILE:hdfnctest>)
-# set (NCpassRegex "HDF-nc test passes")
-# set_tests_properties (MFHDF_TEST-hdfnctest PROPERTIES
-#     PASS_REGULAR_EXPRESSION "${NCpassRegex}"
-#     DEPENDS MFHDF_TEST-cdftest
-#     LABELS ${PROJECT_NAME}
-# )
+add_test (NAME MFHDF_TEST-hdfnctest COMMAND $<TARGET_FILE:hdfnctest>)
+set (NCpassRegex "HDF-nc test passes")
+set_tests_properties (MFHDF_TEST-hdfnctest PROPERTIES
+    PASS_REGULAR_EXPRESSION "${NCpassRegex}"
+    DEPENDS MFHDF_TEST-cdftest
+    LABELS ${PROJECT_NAME}
+)
 if (BUILD_SHARED_LIBS)
   add_test (
       NAME MFHDF_TEST-shared-clearall-objects

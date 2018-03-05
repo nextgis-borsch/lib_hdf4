@@ -23,7 +23,7 @@ mfhdf/libsrc,mfhdf/libsrc,,"h,c"
 mfhdf/ncdump,mfhdf/ncdump,skip,
 mfhdf/ncgen,mfhdf/ncgen,skip,
 mfhdf/nctest,mfhdf/nctest,skip,
-mfhdf/test,mfhdf/test,,"h,c,cmake,dat,nc,sav,out"
+mfhdf/test,mfhdf/test,,"h,c,cmake,dat,nc,sav"
 mfhdf/util,mfhdf/util,skip,
-mfhdf/xdr,mfhdf/xdr,,"h,c"
+mfhdf/xdr,mfhdf/xdr,,"h,c,sav,cyg,out,mar"
 release_notes,release_notes,,txt

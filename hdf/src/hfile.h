@@ -5,13 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* $Id: hfile.h 6194 2015-02-05 14:17:12Z bmribler $ */
+/* $Id$ */
 
 /*+ hfile.h
    *** Header for hfile.c, routines for low level data element I/O
@@ -51,10 +51,10 @@
 
 #define LIBVER_MAJOR    4
 #define LIBVER_MINOR    2 
-#define LIBVER_RELEASE  11 
+#define LIBVER_RELEASE  13 
 #define LIBVER_SUBRELEASE ""   /* For pre-releases like snap0       */
                                 /* Empty string for real releases.           */
-#define LIBVER_STRING   "HDF Version 4.2 Release 11, February 5, 2015"
+#define LIBVER_STRING   "HDF Version 4.2 Release 13, June 24, 2017"
 #define LIBVSTR_LEN    80   /* length of version string  */
 #define LIBVER_LEN  92      /* 4+4+4+80 = 92 */
 /* end of version tags */

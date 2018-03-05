@@ -5,13 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* $Id: hdfi.h 6043 2014-01-21 21:09:03Z acheng $ */
+/* $Id$ */
 
 #ifndef HDFI_H
 #define HDFI_H
@@ -1273,10 +1273,6 @@ correctly.
 #  define HDstrchr(s,c)         (strchr((s),(c)))
 #  define HDstrrchr(s,c)        (strrchr((s),(c)))
 #  define HDstrtol(s,e,b)       (strtol((s),(e),(b)))
-/* non-standard function, not defined on the following machines - */
-#if !(defined IBM6000 || defined ANSISUN )
-#  define HDstrdup(s)      ((char *)strdup((const char *)(s)))
-#endif /* !(etc..) */
 
 
 /**************************************************************************
@@ -1302,7 +1298,9 @@ correctly.
 #endif /* !SUN & GCC */
 
 /* Compatibility #define for V3.3, should be taken out by v4.0 - QAK */
-#define DFSDnumber DFSDndatasets
+/* Commented out only, just in case any legacy code is still using it out there.
+   Will be removed in a few maintenance releases.  -BMR, Jun 5, 2016
+#define DFSDnumber DFSDndatasets */
 
 #endif /* HDFI_H */
 

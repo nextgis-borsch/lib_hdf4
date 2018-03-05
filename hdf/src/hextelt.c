@@ -5,17 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef RCSID
-static char RcsId[] = "@(#)$Revision: 6043 $";
-#endif
-
-/* $Id: hextelt.c 6043 2014-01-21 21:09:03Z acheng $ */
+/* $Id$ */
 
 /*LINTLIBRARY */
 /* ------------------------------ hextelt.c -------------------------------
@@ -65,7 +61,7 @@ static char RcsId[] = "@(#)$Revision: 6043 $";
    HXPcloseAID      -- close file but keep AID active
    HXPendacess      -- close file, free AID
    HXPinfo          -- return info about an external element
-   HXPinquire       -- retreive information about an external element
+   HXPinquire       -- retrieve information about an external element
    HXPread          -- read some data out of an external file
    HXPreset         -- replace the current external info with new info
    HXPseek          -- set the seek position
@@ -180,6 +176,12 @@ DESCRIPTION
    successful execution.  FAIL is returned if any error is encountered.
 FORTRAN
    None
+MODIFICATION
+   Previously, the data_len used was incorrect when the element is
+   already special, either linked-block or external data, in which
+   case, the data_len was the length of the special info, not the data.
+   Changed to use correct data_len when the element is already special.
+   (HDFFR-1516) -BMR, Sep 5, 2015
 
 --------------------------------------------------------------------------*/
 int32
@@ -206,57 +208,72 @@ HXcreate(int32 file_id, uint16 tag, uint16 ref, const char *extern_file_name, in
         || (special_tag = MKSPECIALTAG(tag)) == DFTAG_NULL)
         HGOTO_ERROR(DFE_ARGS, FAIL);
 
+    /* Make sure file has write access */
     if (!(file_rec->access & DFACC_WRITE))
         HGOTO_ERROR(DFE_DENIED, FAIL);
 
-    /* get a access records */
-    access_rec = HIget_access_rec();
-    if (access_rec == NULL)
-        HGOTO_ERROR(DFE_TOOMANY, FAIL);
-
-    /* search for identical dd */
+    /* Get access to the DD of this tag/ref */
     if ((data_id=HTPselect(file_rec,tag,ref))!=FAIL)
       {
-          /* Check if the element is already special */
+          /* If element is already special, proceed according to special type */
           if (HTPis_special(data_id)==TRUE)
             {
                 sp_info_block_t sp_info;
                 int32	aid, retcode;
 
-                aid = Hstartread(file_id, tag, ref);
+                /* Get read access on the tag/ref */
+                if ((aid = Hstartread(file_id, tag, ref)) == FAIL)
+                    HGOTO_ERROR(DFE_NOMATCH, FAIL);
+
+                /* Get the special info structure */
                 retcode = HDget_special_info(aid, &sp_info);
-                Hendaccess(aid);
+
                 if ((retcode == FAIL) || (sp_info.key == FAIL))
                     HGOTO_ERROR(DFE_CANTMOD, FAIL);
 		
+                /* We can proceed with linked-block and external, but
+                   not compression special element */
                 switch(sp_info.key)
-                  {
-                    /* we can proceed with these types of special elements */
+                {
                     case SPECIAL_LINKED:
-                    case SPECIAL_EXT:
+                        if (HDinqblockinfo(aid, &data_len, NULL, NULL, NULL) == FAIL)
+                        {
+                            Hendaccess(aid);
+                            HRETURN_ERROR(DFE_INTERNAL, FAIL);
+                        }
                         break;
-
-                    /* abort since we cannot convert the data element to an external data element */
+                    case SPECIAL_EXT:
+                        data_len = sp_info.length;
+                        break;
                     case SPECIAL_COMP:
                     default:
                         HTPendaccess(data_id);
+                        Hendaccess(aid);
                         HGOTO_ERROR(DFE_CANTMOD, FAIL);
-                  } /* switch */
-            }   /* end if */
+                } /* switch */
+                /* Close access on this special element */
+                Hendaccess(aid);
+            }   /* end if data_id is special */
 
-          /* get the info for the dataset */
-          if(HTPinquire(data_id,NULL,NULL,NULL,&data_len)==FAIL)
-            {
-                HTPendaccess(data_id);
-                HGOTO_ERROR(DFE_INTERNAL, FAIL);
-            } /* end if */
+            else
+            { /* not special */
+            /* Then use HTPinquire to get the length of the data. Note: when
+               this tag is special, this length is the length of the special
+                info only, not data. */ 
+                if (HTPinquire(data_id,NULL,NULL,NULL,&data_len)==FAIL)
+                {
+                    HTPendaccess(data_id);
+                    HGOTO_ERROR(DFE_INTERNAL, FAIL);
+                } /* end if */
+            }
       } /* end if */
 
     /* build the customized external file name. */
     if (!(fname = HXIbuildfilename(extern_file_name, DFACC_CREATE)))
         HGOTO_ERROR(DFE_BADOPEN, FAIL);
 
-    /* create the external file */
+    /* Try to open the external file with write access first, if that fails,
+       create it */
     file_external = (hdf_file_t)HI_OPEN(fname, DFACC_WRITE);
     if (OPENERR(file_external))
     {
@@ -266,12 +283,21 @@ HXcreate(int32 file_id, uint16 tag, uint16 ref, const char *extern_file_name, in
     }
     HDfree(fname);
 
-    /* set up the special element information and write it to file */
+    /* Get a bare access record and special info structure */
+    access_rec = HIget_access_rec();
+    if (access_rec == NULL)
+        HGOTO_ERROR(DFE_TOOMANY, FAIL);
+
     access_rec->special_info = HDmalloc((uint32) sizeof(extinfo_t));
     info = (extinfo_t *) access_rec->special_info;
     if (!info)
         HGOTO_ERROR(DFE_NOSPACE, FAIL);
 
+    /* Initialize char pointer for use in resource cleanup */
+    info->extern_file_name = NULL;
+
+    /* If there is data, either regular or special, read the data then write
+       it to the external file, otherwise, do nothing */
     if (data_id!=FAIL && data_len>0)
       {
           if ((buf = HDmalloc((uint32) data_len)) == NULL)
@@ -287,15 +313,15 @@ HXcreate(int32 file_id, uint16 tag, uint16 ref, const char *extern_file_name, in
     else
       info->length = start_len;
 
+    /* Set up the special element information and write it to file */
     info->attached         = 1;
     info->file_open        = TRUE;
     info->file_external    = file_external;
     info->extern_offset    = offset;
     info->extern_file_name = (char *) HDstrdup(extern_file_name);
     if (!info->extern_file_name)
-      HGOTO_ERROR(DFE_NOSPACE, FAIL);
+        HGOTO_ERROR(DFE_NOSPACE, FAIL);
 
-    /* Getting ready to write out special info struct */
     info->length_file_name = (int32)HDstrlen(extern_file_name);
     {
         uint8      *p = local_ptbuf;
@@ -306,19 +332,25 @@ HXcreate(int32 file_id, uint16 tag, uint16 ref, const char *extern_file_name, in
         INT32ENCODE(p, info->length_file_name);
         HDstrcpy((char *) p, extern_file_name);
     }
+
+    /* Free up the current DD */
     if(data_id!=FAIL)
         if (HTPdelete(data_id) == FAIL)
             HGOTO_ERROR(DFE_CANTDELDD, FAIL);
 
-    /* write the special info structure to file */
+    /* Write the special info structure to file */
     if((dd_aid=Hstartaccess(file_id,special_tag,ref,DFACC_ALL))==FAIL)
         HGOTO_ERROR(DFE_CANTACCESS, FAIL);
     if (Hwrite(dd_aid, 14+info->length_file_name, local_ptbuf) == FAIL)
+    {
+        Hendaccess(dd_aid);
         HGOTO_ERROR(DFE_WRITEERROR, FAIL);
+    }
     if(Hendaccess(dd_aid)==FAIL)
         HGOTO_ERROR(DFE_CANTENDACCESS, FAIL);
+    dd_aid = FAIL;
 
-    /* update access record and file record */
+    /* Update access record and file record */
     if((access_rec->ddid=HTPselect(file_rec,special_tag,ref))==FAIL)
         HGOTO_ERROR(DFE_INTERNAL, FAIL);
     access_rec->special_func = &ext_funcs;
@@ -337,7 +369,11 @@ done:
         if(access_rec!=NULL)
             HIrelease_accrec_node(access_rec);
         if(info!=NULL)
+        {
+            if(info->extern_file_name != NULL)
+                HDfree(info->extern_file_name);
             HDfree(info);
+        }
         if(fname!=NULL)
             HDfree(fname);
         if(data_id!=FAIL)
@@ -1072,6 +1108,8 @@ HXPreset(accrec_t * access_rec, sp_info_block_t * info_block)
 
     /* update our internal pointers */
     info->extern_offset = info_block->offset;
+    if (info->extern_file_name != NULL) /* could be a problem if garbage! */
+        HDfree(info->extern_file_name);
     info->extern_file_name = (char *) HDstrdup(info_block->path);
     if (!info->extern_file_name)
         HGOTO_ERROR(DFE_NOSPACE, FAIL);
@@ -1107,12 +1145,19 @@ HXPreset(accrec_t * access_rec, sp_info_block_t * info_block)
 done:
   if(ret_value == FAIL)   
     { /* Error condition cleanup */
+        if(info!=NULL)
+        {
+            if(info->extern_file_name != NULL)
+                HDfree(info->extern_file_name);
+            HDfree(info);
+        }
 
     } /* end if */
 
   /* Normal function cleanup */
 
   return ret_value; 
+
 }	/* HXPreset */
 
 static	char*	extcreatedir = NULL;

@@ -1,20 +1,20 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Copyright 1993, University Corporation for Atmospheric Research	     *
+ * Copyright 1993, University Corporation for Atmospheric Research	         *
  * See netcdf/COPYRIGHT file for copying and redistribution conditions.      *
- *									     *
+ *                                                                           *
  * Copyright by The HDF Group.                                               *
  * Copyright by the Board of Trustees of the University of Illinois.         *
  * All rights reserved.                                                      *
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*	$Id: array.c 6032 2014-01-17 18:13:52Z acheng $ */
+/*	$Id$ */
 
 #include	<string.h>
 #include	"local_nc.h"
@@ -249,19 +249,19 @@ const void *values ;
 
 	ret->type = type ;
 	ret->szof = NC_typelen(type) ;
-#ifdef DEBUG
+#ifdef SDDEBUG
   fprintf(stderr, "NC_new_array(): type=%u, NC_typelen(type)=%u\n",(unsigned)type,(unsigned)ret->szof);
 #endif
     ret->count = count ;
 	memlen = count * ret->szof ;
 	ret->len = count * NC_xtypelen(type) ;
-#ifdef DEBUG
+#ifdef SDDEBUG
   fprintf(stderr, "NC_new_array(): count=%u, memlen=%u\n",count,memlen);
 #endif
     if( count != 0 )
 	{
 		ret->values = (Void*)HDmalloc(memlen) ;
-#ifdef DEBUG
+#ifdef SDDEBUG
   fprintf(stderr, "NC_new_array(): ret->values=%p, values=%p\n",ret->values,values);
 #endif
         if(ret->values == NULL)
@@ -277,7 +277,7 @@ const void *values ;
 		ret->values = NULL ;
 	}
 		
-#ifdef DEBUG
+#ifdef SDDEBUG
   fprintf(stderr, "NC_new_array(): ret=%p\n",ret);
 #endif
     return(ret) ;
@@ -549,10 +549,10 @@ xdr_NC_array(xdrs, app)
 	NC_array **app;
 {
 	bool_t (*xdr_NC_fnct)() ;
-	u_long count , *countp=NULL ;
-	nc_type type , *typep=NULL ;
+	u_long count = 0, *countp=NULL ;
+	nc_type type = NC_UNSPECIFIED, *typep=NULL ;
 	bool_t stat ;
-	Void *vp ;
+	Void *vp = NULL;
 
 	switch (xdrs->x_op) {
 	case XDR_FREE:
@@ -577,13 +577,18 @@ xdr_NC_array(xdrs, app)
 		typep = &type ;
 		break ;
 	}
+
+	/* This USE_ENUM may not be necessary after xdr and code cleanup.
+	   See HDFFR-1318, HDFFR-1327, and other Mac/XDR issues for details.
+	   I had tried and xdr_enum worked consistently even though there were
+	   failures in other places. -BMR, 6/14/2016 */
 #ifdef USE_ENUM
-	if (! xdr_enum(xdrs, (enum_t *)typep)) {				
+	if (! xdr_enum(xdrs, (enum_t *)typep)) {
 		NCadvise(NC_EXDR, "xdr_NC_array:xdr_enum") ;
 		return (FALSE);
 	}
 #else
-	if (! xdr_int(xdrs, typep)) {				
+	if (! xdr_int(xdrs, typep)) {
 		NCadvise(NC_EXDR, "xdr_NC_array:xdr_int (enum)") ;
 		return (FALSE);
 	}

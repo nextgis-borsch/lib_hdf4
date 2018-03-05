@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
 ################################################################################
-# Copyright (C) 2015, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,143 +23,164 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
+PROJECT (HDF4_HDF_SRC C CXX)
 
+set(HDF4_MFHDF_LIBSRC_INSTALL_INC_DIR ${INSTALL_INC_DIR})
 #-----------------------------------------------------------------------------
 # Setup include Directories
 #-----------------------------------------------------------------------------
-
-include_directories (${HDF4_HDFSOURCE_DIR})
-include_directories (${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+INCLUDE_DIRECTORIES (
+    ${HDF4_HDF_BINARY_DIR}
+    ${HDF4_HDF_SOURCE_DIR}
+)
+LINK_DIRECTORIES (
+    ${HDF4_HDF_BINARY_DIR}
+    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+)
 
 set (HDF4_HDF_SRC_CSRCS
-    atom.c
-    bitvect.c
-    cnbit.c
-    cnone.c
-    crle.c
-    cskphuff.c
-    df24.c
-    dfan.c
-    dfcomp.c
-    dfconv.c
-    dfgr.c
-    dfgroup.c
-    dfimcomp.c
-    dfknat.c
-    dfkswap.c
-    dfp.c
-    dfr8.c
-    dfrle.c
-    dfsd.c
-    dfstubs.c
-    dfufp2i.c
-    dfutil.c
-    dynarray.c
-    glist.c
-    hbitio.c
-    hblocks.c
-    hbuffer.c
-    hchunks.c
-    hcomp.c
-    hcompri.c
-    hdatainfo.c
-    hdfalloc.c
-    herr.c
-    hextelt.c
-    hfile.c
-    hfiledd.c
-    hkit.c
-    linklist.c
-    mcache.c
-    mfan.c
-    mfgr.c
-    mstdio.c
-    tbbt.c
-    vattr.c
-    vconv.c
-    vg.c
-    vgp.c
-    vhi.c
-    vio.c
-    vparse.c
-    vrw.c
-    vsfld.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/atom.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/bitvect.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cdeflate.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cnbit.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cnone.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/crle.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cskphuff.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cszip.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/df24.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfan.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfcomp.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfconv.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfgr.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfgroup.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfimcomp.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfjpeg.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfknat.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfkswap.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfp.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfr8.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfrle.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfsd.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfstubs.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfufp2i.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfunjpeg.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfutil.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dynarray.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/glist.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hbitio.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hblocks.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hbuffer.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hchunks.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hcomp.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hcompri.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hdatainfo.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hdfalloc.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/herr.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hextelt.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hfile.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hfiledd.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hkit.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/linklist.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mcache.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mfan.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mfgr.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mstdio.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/tbbt.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vattr.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vconv.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vg.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vgp.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vhi.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vio.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vparse.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vrw.c
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vsfld.c
 )
 
 set (HDF4_HDF_SRC_CHDRS
-    atom.h
-    bitvect.h
-    cnbit.h
-    cnone.h
-    crle.h
-    cskphuff.h
-    df.h
-    dfan.h
-    dfgr.h
-    dfrig.h
-    dfi.h
-    dfsd.h
-    dfstubs.h
-    dfufp2i.h
-    dynarray.h
-    glist.h
-    H4api_adpt.h
-    hbitio.h
-    hchunks.h
-    hcomp.h
-    hcompi.h
-    hconv.h
-    hdatainfo.h
-    hdf.h
-    hdfi.h
-    herr.h
-    hfile.h
-    hkit.h
-    hlimits.h
-    hntdefs.h
-    hproto.h
-    hqueue.h
-    htags.h
-    linklist.h
-    mcache.h
-    mfan.h
-    mfgr.h
-    mstdio.h
-    tbbt.h
-    vattr.h
-    vg.h
-    vgint.h
-    ${CMAKE_BINARY_DIR}/h4config.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/atom.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/bitvect.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cdeflate.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cnbit.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cnone.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/crle.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cskphuff.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/cszip.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/df.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfan.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfgr.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfrig.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfi.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfsd.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfstubs.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dfufp2i.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/dynarray.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/glist.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/H4api_adpt.h
+    #${HDF4_BINARY_DIR}/h4config.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hbitio.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hchunks.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hcomp.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hcompi.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hconv.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hdatainfo.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hdf.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hdfi.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/herr.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hfile.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hkit.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hlimits.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hntdefs.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hproto.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/hqueue.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/htags.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/linklist.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mcache.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mfan.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mfgr.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/mstdio.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/tbbt.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vattr.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vg.h
+    ${HDF4_HDF_SRC_SOURCE_DIR}/vgint.h
 )
 
-if(JPEG_FOUND)
-    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}
-        dfunjpeg.c
-        dfjpeg.c
-    )
+add_library (${HDF4_SRC_LIB_TARGET} STATIC ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${HDF4_BINARY_DIR}/h4config.h)
+TARGET_C_PROPERTIES (${HDF4_SRC_LIB_TARGET} STATIC " " " ")
+target_link_libraries (${HDF4_SRC_LIB_TARGET} PRIVATE ${LINK_LIBS})
+H4_SET_LIB_OPTIONS (${HDF4_SRC_LIB_TARGET} ${HDF4_SRC_LIB_NAME} STATIC)
+set_target_properties (${HDF4_SRC_LIB_TARGET} PROPERTIES
+    FOLDER libraries
+    INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+)
+if (WIN32)
+  set_property (TARGET ${HDF4_SRC_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "DOS_FS")
+endif (WIN32)
+if(BUILD_STATIC_LIBS)
+    set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_SRC_LIB_TARGET}")
+    set (install_targets ${HDF4_SRC_LIB_TARGET})
 endif()
 
-if(ZLIB_FOUND)
-    set(HDF4_HDF_SRC_CSRCS ${HDF4_HDF_SRC_CSRCS}
-        cdeflate.c
-        cszip.c
-    )
-
-    set(HDF4_HDF_SRC_CHDRS ${HDF4_HDF_SRC_CHDRS}
-        cszip.h
-        cdeflate.h
-    )
-endif()
-
-set(LIB_NAME ${HDF4_SRC_LIB})
-if(BUILD_SHARED_LIBS)
-    add_library(${LIB_NAME} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
-    set_target_properties (${LIB_NAME} PROPERTIES
-        VERSION ${VERSION}
-        SOVERSION ${SO_VERSION})
+if (BUILD_SHARED_LIBS)
+  add_library (${HDF4_SRC_LIBSH_TARGET} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${HDF4_BINARY_DIR}/h4config.h)
+  TARGET_C_PROPERTIES (${HDF4_SRC_LIBSH_TARGET} SHARED " " " ")
+  target_link_libraries (${HDF4_SRC_LIBSH_TARGET} PRIVATE ${LINK_SHARED_LIBS})
+  set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_SRC_LIBSH_TARGET}")
+  H4_SET_LIB_OPTIONS (${HDF4_SRC_LIBSH_TARGET} ${HDF4_SRC_LIB_NAME} SHARED)
+  set_target_properties (${HDF4_SRC_LIBSH_TARGET} PROPERTIES
+      FOLDER libraries
+      COMPILE_DEFINITIONS "H4_BUILT_AS_DYNAMIC_LIB"
+      INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+      INTERFACE_COMPILE_DEFINITIONS H4_BUILT_AS_DYNAMIC_LIB=1
+  )
+  if (WIN32)
+    set_property (TARGET ${HDF4_SRC_LIBSH_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "DOS_FS")
+  endif (WIN32)
+  set (install_targets ${install_targets} ${HDF4_SRC_LIBSH_TARGET})
 elseif(OSX_FRAMEWORK)
-    add_library(${LIB_NAME} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
-    set_target_properties(${LIB_NAME} PROPERTIES
+    set(HDF4_MFHDF_LIBSRC_INSTALL_INC_DIR ${INSTALL_LIB_DIR}/hdf4.framework/Headers)
+    add_library(${HDF4_SRC_LIBSH_TARGET} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${HDF4_BINARY_DIR}/h4config.h)
+    set_target_properties(${HDF4_SRC_LIBSH_TARGET} PROPERTIES
       FRAMEWORK TRUE
       FRAMEWORK_VERSION ${FRAMEWORK_VERSION}
       MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${VERSION}
@@ -169,30 +190,50 @@ elseif(OSX_FRAMEWORK)
       PUBLIC_HEADER "${HDF4_HDF_SRC_CHDRS}"
       VERSION ${VERSION}
       SOVERSION ${SO_VERSION}
+      OUTPUT_NAME hdf4
+      COMPILE_DEFINITIONS "H4_BUILT_AS_DYNAMIC_LIB"
+      INTERFACE_COMPILE_DEFINITIONS H4_BUILT_AS_DYNAMIC_LIB=1
       )
-else()
-    add_library(${LIB_NAME} STATIC ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS})
+
+      target_link_libraries (${HDF4_SRC_LIBSH_TARGET} PRIVATE ${LINK_SHARED_LIBS})
+      set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_SRC_LIBSH_TARGET}")
+      set (install_targets ${install_targets} ${HDF4_SRC_LIBSH_TARGET})
+endif (BUILD_SHARED_LIBS)
+
+#-----------------------------------------------------------------------------
+# Add file(s) to CMake Install
+#-----------------------------------------------------------------------------
+if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
+    INSTALL (
+    FILES
+        ${HDF4_HDF_SRC_CHDRS}
+    DESTINATION
+        ${HDF4_INSTALL_INCLUDE_DIR}
+    COMPONENT
+        headers
+)
 endif()
 
-if(TARGET_LINK_LIB)
-    target_link_libraries(${HDF4_SRC_LIB} ${TARGET_LINK_LIB})
-endif()
-if(DEPENDENCY_LIB)
-    add_dependencies(${HDF4_SRC_LIB} ${DEPENDENCY_LIB})
-endif()
-
-if (WIN32)
-  add_definitions (-DDOS_FS)
-endif (WIN32)
+#-----------------------------------------------------------------------------
+# Add Target(s) to CMake Install for import into other projects
+#-----------------------------------------------------------------------------
+if (HDF4_EXPORTED_TARGETS)
+  # if (BUILD_SHARED_LIBS)
+  #   INSTALL_TARGET_PDB (${HDF4_SRC_LIBSH_TARGET} ${HDF4_INSTALL_BIN_DIR} libraries)
+  # endif (BUILD_SHARED_LIBS)
+  # INSTALL_TARGET_PDB (${HDF4_SRC_LIB_TARGET} ${HDF4_INSTALL_BIN_DIR} libraries)
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
-    install(TARGETS ${LIB_NAME}
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT applications
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
-        FRAMEWORK DESTINATION ${INSTALL_LIB_DIR}
-    )
+  INSTALL (
+      TARGETS
+          ${install_targets}
+      EXPORT
+          ${HDF4_EXPORTED_TARGETS}
+      LIBRARY DESTINATION ${HDF4_INSTALL_LIB_DIR} COMPONENT libraries
+      ARCHIVE DESTINATION ${HDF4_INSTALL_LIB_DIR} COMPONENT libraries
+      RUNTIME DESTINATION ${HDF4_INSTALL_BIN_DIR} COMPONENT libraries
+      FRAMEWORK DESTINATION ${HDF4_INSTALL_FWRK_DIR} COMPONENT libraries
+      INCLUDES DESTINATION ${HDF4_MFHDF_LIBSRC_INSTALL_INC_DIR}
+  )
 endif()
-if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    install(FILES ${HDF4_HDF_SRC_CHDRS} DESTINATION ${INSTALL_INC_DIR} COMPONENT headers)
-endif()
+endif (HDF4_EXPORTED_TARGETS)

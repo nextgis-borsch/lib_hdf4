@@ -5,13 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* $Id: dfufp2i.h 5949 2013-06-10 16:16:09Z byrn $ */
+/* $Id$ */
 
 #ifndef DFUFP2IM_H  /* avoid re-inclusion */
 #define DFUFP2IM_H
@@ -79,6 +79,10 @@ extern      "C"
                 (float32 *scale, int32 dim, int32 *offsets, int32 res);
     HDFLIBAPI int  pixrep_simple
                 (Input * in, Output * out);
+    HDFLIBAPI int DFUfptoimage
+                (int32 hdim, int32 vdim, float32 max, float32 min,
+                 float32 *hscale, float32 *vscale, float32 *data, uint8 *palette,
+                 char *outfile, int ct_method, int32 hres, int32 vres, int compress);
 
 #if defined c_plusplus || defined __cplusplus
 }

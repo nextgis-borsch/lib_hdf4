@@ -8,13 +8,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*	$Id: var.c 5981 2013-12-16 16:27:16Z bmribler $ */
+/*	$Id$ */
 
 #include	<string.h>
 #include	"local_nc.h"
@@ -838,7 +838,7 @@ xdr_NC_var(xdrs, vpp)
 	XDR *xdrs;
 	NC_var **vpp;
 {
-	u_long begin ;
+	u_long begin = 0;
 
 	if( xdrs->x_op == XDR_FREE)
 	{
@@ -863,6 +863,10 @@ xdr_NC_var(xdrs, vpp)
 	if( !xdr_NC_array(xdrs, &((*vpp)->attrs)))
 		return(FALSE) ;
 
+	/* This USE_ENUM may not be necessary after xdr and code cleanup.
+	   See HDFFR-1318, HDFFR-1327, and other Mac/XDR issues for details.
+	   I had tried and xdr_enum worked consistently even though there were
+	   failures in other places. -BMR, 6/14/2016 */
 #ifdef USE_ENUM
 	if (! xdr_enum(xdrs, (enum_t *)&((*vpp)->type)) ) {
 		return (FALSE);

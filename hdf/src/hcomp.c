@@ -5,17 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef RCSID
-static char RcsId[] = "@(#)$Revision: 5887 $";
-#endif
-
-/* $Id: hcomp.c 5887 2012-10-08 04:57:47Z bmribler $ */
+/* $Id$ */
 
 /*
 FILE
@@ -1980,8 +1976,8 @@ HCPgetdatasize(int32 file_id,
 		  HGOTO_ERROR(DFE_INTERNAL, FAIL);
 	    }
 
-	    /* unlimited dimension falls in here */
-	    else if (sp_tag == SPECIAL_LINKED)
+	    /* unlimited dimension and external data fall in here */
+	    else if (sp_tag == SPECIAL_LINKED || sp_tag == SPECIAL_EXT)
 	    {
 		INT32DECODE(p, len);	/* get total data length */
 		*orig_size = *comp_size = len;	/* set data sizes */

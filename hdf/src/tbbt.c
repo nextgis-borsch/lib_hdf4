@@ -5,17 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef RCSID
-static char RcsId[] = "@(#)$Revision: 6043 $";
-#endif
-
-/* $Id: tbbt.c 6043 2014-01-21 21:09:03Z acheng $ */
+/* $Id$ */
 
 /* "tbbt.c" -- Routines for using threaded, balanced, binary trees. */
 /* Extended from (added threads to) Knuth 6.2.3, Algorithm A (AVL trees) */

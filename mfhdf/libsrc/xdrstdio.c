@@ -1,5 +1,5 @@
 #if !defined(lint)
-static char rcsid[] = "$Id: xdrstdio.c 510 1993-05-03 21:27:09Z chouck $";
+static char rcsid[] = "$Id$";
 #endif
 
 /*

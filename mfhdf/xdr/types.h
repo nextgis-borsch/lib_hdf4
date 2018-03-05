@@ -35,7 +35,7 @@ extern char *malloc();
 #define mem_alloc(bsize)    malloc(bsize)
 #define mem_free(ptr, bsize)    free(ptr)
 
-#if defined UNIX || defined __UNIX
+#if defined unix | defined __unix
 #ifndef makedev /* ie, we haven't already included it */
 #include <sys/types.h>
 #endif

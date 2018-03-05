@@ -12,7 +12,7 @@
  *
  * -glenn
  */
-/* $Id: xdrposix.c 6112 2014-06-04 21:05:09Z byrn $ */
+/* $Id$ */
 
 /*
  * 32-bit integer on the host architecture (on the CRAY, this is actually 64

@@ -5,13 +5,13 @@
  *                                                                           *
  * This file is part of HDF.  The full HDF copyright notice, including       *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at      *
- * http://hdfgroup.org/products/hdf4/doc/Copyright.html.  If you do not have *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF/releases/.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* $Id: herr.h 5759 2012-01-19 22:34:47Z byrn $ */
+/* $Id$ */
 
 /*+ herr.h
    ***  header file for using error routines
@@ -92,34 +92,26 @@
 
 /* always points to the next available slot; the last error record is in slot (top-1) */
 #if defined(H4_BUILT_AS_DYNAMIC_LIB)
-#ifdef _H_ERR_MASTER_
-#if defined _WIN32 && defined hdf_EXPORTS
+# ifdef _H_ERR_MASTER_
+#  if defined _WIN32 && defined hdf_shared_EXPORTS
 __declspec(dllexport)
-#endif
-#else
+#  endif
+# else
 HDFERRPUBLIC
-#endif /* _H_ERR_MASTER_ */
+# endif /* _H_ERR_MASTER_ */
 int32       error_top
-#ifdef _H_ERR_MASTER_
+# ifdef _H_ERR_MASTER_
 = 0
-#endif /* _H_ERR_MASTER_ */
+# endif /* _H_ERR_MASTER_ */
 ;
 #else /* defined(H4_BUILT_AS_DYNAMIC_LIB) */
-#ifndef _H_ERR_MASTER_
-#if defined _WIN32 && defined HDFAPDLL
-__declspec(dllimport)
-#else
+# ifndef _H_ERR_MASTER_
 HDFERRPUBLIC
-#endif
-#else
-#if defined _WIN32 && defined HDFLIBDLL
-__declspec(dllexport)
-#endif
-#endif /* _H_ERR_MASTER_ */
+# endif /* _H_ERR_MASTER_ */
 int32       error_top
-#ifdef _H_ERR_MASTER_
+# ifdef _H_ERR_MASTER_
 = 0
-#endif /* _H_ERR_MASTER_ */
+# endif /* _H_ERR_MASTER_ */
 ;
 #endif /* defined(H4_BUILT_AS_DYNAMIC_LIB) */
 
@@ -153,6 +145,7 @@ typedef enum
       DFE_SEEKERROR,            /* There was a seek error */
       DFE_RDONLY,               /* The DF is read only */
       DFE_BADSEEK,              /* Attempt to seek past end of element */
+      DFE_INVFILE,              /* File is neither hdf, cdf, netcdf */
 
 /* Low-level HDF I/O errors */
       DFE_PUTELEM,              /* Hputelement failed in some way */
@@ -207,6 +200,7 @@ typedef enum
       DFE_ARGS,                 /* bad arguments to routine */
       DFE_INTERNAL,             /* serious internal error */
       DFE_NORESET,              /* Too late to modify this value */
+      DFE_EXCEEDMAX,            /* Value exceeds max allowed */
       DFE_GENAPP,               /* Generic application,level error */
 
 /* Generic interface errors */
@@ -224,6 +218,7 @@ typedef enum
       DFE_RANGE,                /* improper range for attempted acess */
       DFE_BADCONV,              /* Don't know how to convert data type */
       DFE_BADTYPE,              /* Incompatible types specified */
+      DFE_BADDIMNAME,           /* Dimension name not valid or already taken */
       DFE_NOVGREP,              /* No Vgroup representation for SDS and dim */
 
 /* Compression errors */
@@ -284,6 +279,7 @@ typedef enum
       DFE_VSREAD,               /* Error reading from VData */
       DFE_BADVH,                /* Error in VData Header */
       DFE_FIELDSSET,            /* Fields already set for vdata */
+
 /* High-level Vdata/Vset errors */
       DFE_VSCANTCREATE,         /* Cannot create VData */
       DFE_VGCANTCREATE,         /* Cannot create VGroup */
@@ -291,6 +287,9 @@ typedef enum
 /* Generic Vdata/Vset errors */
       DFE_CANTATTACH,           /* Cannot attach to a VData/Vset */
       DFE_CANTDETACH,           /* Cannot detach a VData/Vset with access 'w' */
+
+/* XDR level errors */
+      DFE_XDRERROR,             /* Error occur in XDR and/or CDF level */
 
 /* bit I/O errors */
       DFE_BITREAD,              /* There was a bit-read error */
@@ -304,7 +303,14 @@ typedef enum
       DFE_BVNEW,                /* Failed to create a bit-vector */
       DFE_BVSET,                /* Failed when setting a bit in a bit-vector */
       DFE_BVGET,                /* Failed when getting a bit in a bit-vector */
-      DFE_BVFIND                /* Failed when finding a bit in a bit-vector */
+      DFE_BVFIND,               /* Failed when finding a bit in a bit-vector */
+
+/* General to all interfaces */
+      DFE_CANTSETATTR,          /* Failed to add an attribute */
+      DFE_CANTGETATTR,          /* Failed to find or get an attribute */
+
+/* Annotation interface errors */
+      DFE_ANAPIERROR		/* Failed in annotation interface */
   }
 hdf_err_code_t;
 
@@ -339,6 +345,7 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_SEEKERROR,     "Error performing seek operation"},
     {DFE_RDONLY,        "Attempt to write to read-only HDF file"},
     {DFE_BADSEEK,       "Attempt to seek past end of element"},
+    {DFE_INVFILE,       "File is supported, must be either hdf, cdf, netcdf"},
 
 /* Low-level HDF I/O errors */
     {DFE_PUTELEM,       "Hputelement failed in some way"},
@@ -393,6 +400,7 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_ARGS,          "Invalid arguments to routine"},
     {DFE_INTERNAL,      "HDF Internal error"},
     {DFE_NORESET,       "Can not reset this value"},
+    {DFE_EXCEEDMAX,     "Value exceeds max allowed"},
     {DFE_GENAPP,        "Generic application-level error"},
 
 /* Generic interface errors */
@@ -410,6 +418,8 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_RANGE,         "Improper range for attempted access"},
     {DFE_BADCONV,       "Don't know how to convert data type"},
     {DFE_BADTYPE,       "Incompatible type specified"},
+    {DFE_BADDIMNAME,    "Dimension name not valid or already taken"},
+    {DFE_NOVGREP,       "No Vgroup representation for SDS and dim"},
 
 /* Compression errors */
     {DFE_BADSCHEME,     "Unknown compression scheme specified"},
@@ -427,13 +437,17 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_CANTCOMP,      "Can't compress an object"},
     {DFE_CANTDECOMP,    "Can't de-compress an object"},
     {DFE_NOENCODER,     "Encoder not available"},
+    {DFE_NOSZLIB,       "SZIP library not available"},
+    {DFE_COMPVERSION,   "Z_VERSION_ERROR (-6) returned from zlib"},
+    {DFE_READCOMP,      "Error in reading compressed data"},
 
 /* Raster errors */
-    {DFE_NODIM,         "No dimension record associated with image"},
+    {DFE_NODIM,         "No dimension record associated with image or data set"},
     {DFE_BADRIG,        "Error processing a RIG"},
     {DFE_RINOTFOUND,    "Can't find raster image"},
     {DFE_BADATTR,       "Bad Attribute"},
     {DFE_LUTNOTFOUND,   "No palette information for RIG"},
+    {DFE_GRNOTFOUND,    "Can't find specified GR"},
 
 /* SDG/NDG errors */
     {DFE_BADTABLE,      "The nsdg table is wrong"},
@@ -456,6 +470,7 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_BADVSCLASS,    "Cannot set VData class"},
     {DFE_VSWRITE,       "Error writing to VData"},
     {DFE_VSREAD,        "Error reading from VData"},
+    {DFE_BADVH,         "Error in VData Header"},
     {DFE_FIELDSSET,     "Fields already set for vdata"},
 
 /* High-level Vdata/Vset errors */
@@ -465,6 +480,9 @@ PRIVATE const struct error_messages_t error_messages[] =
 /* Generic Vdata/Vset errors */
     {DFE_CANTATTACH,    "Cannot attach to a VData"},
     {DFE_CANTDETACH,    "Cannot detach a VData with access 'w'"},
+
+/* XDR level errors */
+    {DFE_XDRERROR,      "Error from XDR and/or CDF level"},
 
 /* bit I/O errors */
     {DFE_BITREAD,       "There was a bit-read error"},
@@ -478,7 +496,15 @@ PRIVATE const struct error_messages_t error_messages[] =
     {DFE_BVNEW,         "Failed to create a bit-vector"},
     {DFE_BVSET,         "Failed when setting a bit in a bit-vector"},
     {DFE_BVGET,         "Failed when getting a bit in a bit-vector"},
-    {DFE_BVFIND,        "Failed when finding a bit in a bit-vector"}
+    {DFE_BVFIND,        "Failed when finding a bit in a bit-vector"},
+
+/* General to all interfaces */
+    {DFE_CANTSETATTR,   "Cannot set an attribute"},
+    {DFE_CANTGETATTR,   "Cannot find or get an attribute"},
+
+/* Annotation interface errors */
+    {DFE_ANAPIERROR,	"Failed in annotation interface"}
+
 };
 #endif /* _H_ERR_MASTER_ */
 

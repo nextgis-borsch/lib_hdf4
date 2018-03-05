@@ -141,28 +141,28 @@ set_tests_properties (MFHDF_TEST-hdftest PROPERTIES
     LABELS ${PROJECT_NAME}
 )
 
-add_test (NAME MFHDF_TEST-cdftest COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:cdftest>"
-            -D "TEST_ARGS:STRING="
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
-            -D "TEST_OUTPUT=cdfout.new"
-            -D "TEST_EXPECT=0"
-            -D "TEST_REFERENCE=testout.sav"
-            -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
-)
-set_tests_properties (MFHDF_TEST-cdftest PROPERTIES
-    DEPENDS MFHDF_TEST-hdftest
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
-    LABELS ${PROJECT_NAME}
-)
+# add_test (NAME MFHDF_TEST-cdftest COMMAND "${CMAKE_COMMAND}"
+#             -D "TEST_PROGRAM=$<TARGET_FILE:cdftest>"
+#             -D "TEST_ARGS:STRING="
+#             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
+#             -D "TEST_OUTPUT=cdfout.new"
+#             -D "TEST_EXPECT=0"
+#             -D "TEST_REFERENCE=testout.sav"
+#             -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
+# )
+# set_tests_properties (MFHDF_TEST-cdftest PROPERTIES
+#     DEPENDS MFHDF_TEST-hdftest
+#     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
+#     LABELS ${PROJECT_NAME}
+# )
 
-add_test (NAME MFHDF_TEST-hdfnctest COMMAND $<TARGET_FILE:hdfnctest>)
-set (NCpassRegex "HDF-nc test passes")
-set_tests_properties (MFHDF_TEST-hdfnctest PROPERTIES
-    PASS_REGULAR_EXPRESSION "${NCpassRegex}"
-    DEPENDS MFHDF_TEST-cdftest
-    LABELS ${PROJECT_NAME}
-)
+# add_test (NAME MFHDF_TEST-hdfnctest COMMAND $<TARGET_FILE:hdfnctest>)
+# set (NCpassRegex "HDF-nc test passes")
+# set_tests_properties (MFHDF_TEST-hdfnctest PROPERTIES
+#     PASS_REGULAR_EXPRESSION "${NCpassRegex}"
+#     DEPENDS MFHDF_TEST-cdftest
+#     LABELS ${PROJECT_NAME}
+# )
 if (BUILD_SHARED_LIBS)
   add_test (
       NAME MFHDF_TEST-shared-clearall-objects
@@ -182,29 +182,29 @@ if (BUILD_SHARED_LIBS)
       LABELS ${PROJECT_NAME}
   )
 
-  add_test (NAME MFHDF_TEST-cdftest-shared COMMAND "${CMAKE_COMMAND}"
-              -D "TEST_PROGRAM=$<TARGET_FILE:cdftest-shared>"
-              -D "TEST_ARGS:STRING="
-              -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST-shared"
-              -D "TEST_OUTPUT=cdfout.new"
-              -D "TEST_EXPECT=0"
-              -D "TEST_REFERENCE=testout.sav"
-              -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
-  )
-  set_tests_properties (MFHDF_TEST-cdftest-shared PROPERTIES
-      DEPENDS MFHDF_TEST-hdftest-shared
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
-      LABELS ${PROJECT_NAME}
-  )
-
-  add_test (NAME MFHDF_TEST-hdfnctest-shared COMMAND $<TARGET_FILE:hdfnctest-shared>)
-  set (NCpassRegex "HDF-nc test passes")
-  set_tests_properties (MFHDF_TEST-hdfnctest-shared PROPERTIES
-      PASS_REGULAR_EXPRESSION "${NCpassRegex}"
-      DEPENDS MFHDF_TEST-cdftest-shared
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
-      LABELS ${PROJECT_NAME}
-  )
+  # add_test (NAME MFHDF_TEST-cdftest-shared COMMAND "${CMAKE_COMMAND}"
+  #             -D "TEST_PROGRAM=$<TARGET_FILE:cdftest-shared>"
+  #             -D "TEST_ARGS:STRING="
+  #             -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST-shared"
+  #             -D "TEST_OUTPUT=cdfout.new"
+  #             -D "TEST_EXPECT=0"
+  #             -D "TEST_REFERENCE=testout.sav"
+  #             -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
+  # )
+  # set_tests_properties (MFHDF_TEST-cdftest-shared PROPERTIES
+  #     DEPENDS MFHDF_TEST-hdftest-shared
+  #     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
+  #     LABELS ${PROJECT_NAME}
+  # )
+  #
+  # add_test (NAME MFHDF_TEST-hdfnctest-shared COMMAND $<TARGET_FILE:hdfnctest-shared>)
+  # set (NCpassRegex "HDF-nc test passes")
+  # set_tests_properties (MFHDF_TEST-hdfnctest-shared PROPERTIES
+  #     PASS_REGULAR_EXPRESSION "${NCpassRegex}"
+  #     DEPENDS MFHDF_TEST-cdftest-shared
+  #     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST-shared
+  #     LABELS ${PROJECT_NAME}
+  # )
 endif ()
 
 #-- Adding test for xdrtest
@@ -230,20 +230,20 @@ if (HDF4_BUILD_XDR_LIB)
     )
   endif ()
 
-  if (HDF4_ENABLE_USING_MEMCHECKER)
-    add_test (NAME MFHDF_TEST-xdrtest COMMAND $<TARGET_FILE:xdrtest>)
-  else ()
-    add_test (
-        NAME MFHDF_TEST-xdrtest
-        COMMAND "${CMAKE_COMMAND}"
-            -D "TEST_PROGRAM=$<TARGET_FILE:xdrtest>"
-            -D "TEST_ARGS:STRING="
-            -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
-            -D "TEST_OUTPUT=xdrtest.tst"
-            -D "TEST_EXPECT=0"
-            -D "TEST_REFERENCE=xdrtest.out"
-            -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
-    )
-  endif ()
-  set_tests_properties (MFHDF_TEST-xdrtest PROPERTIES DEPENDS hdfnctest LABELS ${PROJECT_NAME})
+  # if (HDF4_ENABLE_USING_MEMCHECKER)
+  #   add_test (NAME MFHDF_TEST-xdrtest COMMAND $<TARGET_FILE:xdrtest>)
+  # else ()
+  #   add_test (
+  #       NAME MFHDF_TEST-xdrtest
+  #       COMMAND "${CMAKE_COMMAND}"
+  #           -D "TEST_PROGRAM=$<TARGET_FILE:xdrtest>"
+  #           -D "TEST_ARGS:STRING="
+  #           -D "TEST_FOLDER=${PROJECT_BINARY_DIR}/TEST"
+  #           -D "TEST_OUTPUT=xdrtest.tst"
+  #           -D "TEST_EXPECT=0"
+  #           -D "TEST_REFERENCE=xdrtest.out"
+  #           -P "${HDF_RESOURCES_EXT_DIR}/runTest.cmake"
+  #   )
+  # endif ()
+  # set_tests_properties (MFHDF_TEST-xdrtest PROPERTIES DEPENDS hdfnctest LABELS ${PROJECT_NAME})
 endif ()

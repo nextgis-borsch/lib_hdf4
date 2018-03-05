@@ -190,6 +190,18 @@ install (
 )
 endif()
 
+# Copy dll's for tests
+if(WIN32)
+    file(GLOB_RECURSE IMPORTED_WIN_DLLS ${CMAKE_BINARY_DIR}/third-party/*.dll)
+    foreach(IMPORTED_WIN_DLL ${IMPORTED_WIN_DLLS})
+        add_custom_command(TARGET ${HDF4_MF_LIBSH_TARGET}
+                            POST_BUILD
+                            COMMAND ${CMAKE_COMMAND} -E copy ${IMPORTED_WIN_DLL} $<TARGET_FILE_DIR:${HDF4_MF_LIBSH_TARGET}>
+                            COMMENT "Copy ${IMPORTED_WIN_DLL} to ${HDF4_MF_LIBSH_TARGET} out directory"
+                        )
+
+    endforeach()
+endif()
 
 # Create the <Package>Config.cmake file
 configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in

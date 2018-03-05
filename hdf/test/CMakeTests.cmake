@@ -193,17 +193,17 @@ foreach (decade ${thf_decade})
   set (last_test "HDF_TEST-testhdf_thf${decade}-clearall-objects")
 endforeach (decade ${thf_decade})
 
-add_test (NAME HDF_TEST-testhdf COMMAND $<TARGET_FILE:testhdf>)
-set (passRegex "All tests were successful")
-set_tests_properties (HDF_TEST-testhdf PROPERTIES
-    PASS_REGULAR_EXPRESSION "${passRegex}"
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
-    LABELS ${PROJECT_NAME}
-)
-if (NOT "${last_test}" STREQUAL "")
-  set_tests_properties (HDF_TEST-testhdf PROPERTIES DEPENDS ${last_test})
-endif ()
-set (last_test "HDF_TEST-testhdf")
+# add_test (NAME HDF_TEST-testhdf COMMAND $<TARGET_FILE:testhdf>)
+# set (passRegex "All tests were successful")
+# set_tests_properties (HDF_TEST-testhdf PROPERTIES
+#     PASS_REGULAR_EXPRESSION "${passRegex}"
+#     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/TEST
+#     LABELS ${PROJECT_NAME}
+# )
+# if (NOT "${last_test}" STREQUAL "")
+#   set_tests_properties (HDF_TEST-testhdf PROPERTIES DEPENDS ${last_test})
+# endif ()
+# set (last_test "HDF_TEST-testhdf")
 
 #-- Adding test for buffer
 if (NOT WIN32)

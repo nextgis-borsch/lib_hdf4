@@ -43,7 +43,7 @@ set (testhdf_SRCS
     ${HDF4_HDF_TEST_SOURCE_DIR}/tmgrattr.c
     ${HDF4_HDF_TEST_SOURCE_DIR}/tmgrcomp.c
     ${HDF4_HDF_TEST_SOURCE_DIR}/tree.c
-    ${HDF4_HDF_TEST_SOURCE_DIR}/tszip.c
+    # ${HDF4_HDF_TEST_SOURCE_DIR}/tszip.c
     ${HDF4_HDF_TEST_SOURCE_DIR}/tusejpegfuncs.c
     ${HDF4_HDF_TEST_SOURCE_DIR}/tutils.c
     ${HDF4_HDF_TEST_SOURCE_DIR}/tvattr.c

@@ -1,4 +1,4 @@
-HDF version 4.2.13 released on 2017-06-24
+HDF version 4.2.14 released on 2018-06-26
 ===================================================
 
 Information about HDF

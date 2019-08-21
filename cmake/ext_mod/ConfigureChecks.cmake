@@ -1,18 +1,18 @@
 #-----------------------------------------------------------------------------
 # Include all the necessary files for macros
 #-----------------------------------------------------------------------------
-include (${CMAKE_ROOT}/Modules/CheckFunctionExists.cmake)
-include (${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
-include (${CMAKE_ROOT}/Modules/CheckIncludeFileCXX.cmake)
-include (${CMAKE_ROOT}/Modules/CheckIncludeFiles.cmake)
-include (${CMAKE_ROOT}/Modules/CheckLibraryExists.cmake)
-include (${CMAKE_ROOT}/Modules/CheckSymbolExists.cmake)
-include (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
-include (${CMAKE_ROOT}/Modules/CheckVariableExists.cmake)
-include (${CMAKE_ROOT}/Modules/CheckFortranFunctionExists.cmake)
-include (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
+include (CheckFunctionExists)
+include (CheckIncludeFile)
+include (CheckIncludeFileCXX)
+include (CheckIncludeFiles)
+include (CheckLibraryExists)
+include (CheckSymbolExists)
+include (CheckTypeSize)
+include (CheckVariableExists)
+include (CheckFortranFunctionExists)
+include (TestBigEndian)
 if (CMAKE_CXX_COMPILER AND CMAKE_CXX_COMPILER_LOADED)
-  include (${CMAKE_ROOT}/Modules/TestForSTDNamespace.cmake)
+  include (TestForSTDNamespace)
 endif ()
 
 #-----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ if (APPLE)
   list (LENGTH CMAKE_OSX_ARCHITECTURES ARCH_LENGTH)
   if (ARCH_LENGTH GREATER 1)
     set (CMAKE_OSX_ARCHITECTURES "" CACHE STRING "" FORCE)
-    message(FATAL_ERROR "Building Universal Binaries on OS X is NOT supported by the HDF5 project. This is"
+    message(FATAL_ERROR "Building Universal Binaries on OS X is NOT supported by the HDF project. This is"
     "due to technical reasons. The best approach would be build each architecture in separate directories"
     "and use the 'lipo' tool to combine them into a single executable or library. The 'CMAKE_OSX_ARCHITECTURES'"
     "variable has been set to a blank value which will build the default architecture for this system.")
@@ -130,7 +130,7 @@ endif ()
 
 # For other specific tests, use this MACRO.
 macro (HDF_FUNCTION_TEST OTHER_TEST)
-  if ("${HDF_PREFIX}_${OTHER_TEST}" MATCHES "^${HDF_PREFIX}_${OTHER_TEST}$")
+  if (NOT DEFINED ${HDF_PREFIX}_${OTHER_TEST})
     set (MACRO_CHECK_FUNCTION_DEFINITIONS "-D${OTHER_TEST} ${CMAKE_REQUIRED_FLAGS}")
     set (OTHER_TEST_ADD_LIBRARIES)
     if (CMAKE_REQUIRED_LIBRARIES)

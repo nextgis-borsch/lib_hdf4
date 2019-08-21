@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.2.2)
 project (HDF4_HDF_TEST C CXX)
 
 #-----------------------------------------------------------------------------
@@ -58,30 +59,26 @@ endif ()
 
 #-- Adding test for testhdf
 add_executable (testhdf ${testhdf_SRCS})
-TARGET_NAMING (testhdf STATIC)
 TARGET_C_PROPERTIES (testhdf STATIC " " " ")
-target_link_libraries (testhdf ${HDF4_SRC_LIB_TARGET} ${LINK_LIBS})
+target_link_libraries (testhdf PRIVATE ${HDF4_SRC_LIB_TARGET} ${LINK_COMP_LIBS})
 set_target_properties (testhdf PROPERTIES FOLDER test)
 if (BUILD_SHARED_LIBS)
   add_executable (testhdf-shared ${testhdf_SRCS})
-  TARGET_NAMING (testhdf-shared SHARED)
   TARGET_C_PROPERTIES (testhdf-shared SHARED " " " ")
-  target_link_libraries (testhdf-shared ${HDF4_SRC_LIBSH_TARGET} ${LINK_SHARED_LIBS})
+  target_link_libraries (testhdf-shared PRIVATE ${HDF4_SRC_LIBSH_TARGET} ${LINK_COMP_LIBS})
   set_target_properties (testhdf-shared PROPERTIES FOLDER test)
 endif ()
 
 #-- Adding test for buffer
 if (NOT WIN32)
   add_executable (buffer ${HDF4_HDF_TEST_SOURCE_DIR}/buffer.c)
-  TARGET_NAMING (buffer STATIC)
   TARGET_C_PROPERTIES (buffer STATIC " " " ")
-  target_link_libraries (buffer ${HDF4_SRC_LIB_TARGET} ${LINK_LIBS})
+  target_link_libraries (buffer PRIVATE ${HDF4_SRC_LIB_TARGET})
   set_target_properties (buffer PROPERTIES FOLDER test)
   if (BUILD_SHARED_LIBS)
     add_executable (buffer-shared ${HDF4_HDF_TEST_SOURCE_DIR}/buffer.c)
-    TARGET_NAMING (buffer-shared SHARED)
     TARGET_C_PROPERTIES (buffer-shared SHARED " " " ")
-    target_link_libraries (buffer-shared ${HDF4_SRC_LIBSH_TARGET} ${LINK_SHARED_LIBS})
+    target_link_libraries (buffer-shared PRIVATE ${HDF4_SRC_LIBSH_TARGET})
     set_target_properties (buffer-shared PROPERTIES FOLDER test)
   endif ()
 endif ()
@@ -93,3 +90,4 @@ endif ()
 ##############################################################################
 
 include (CMakeTests.cmake)
+

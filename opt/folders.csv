@@ -2,11 +2,11 @@
 bin,bin,skip,
 config/cmake,cmake,,"in,ConfigureChecks.cmake,HDF4Macros.cmake,FindXDR.cmake,CTestCustom.cmake"
 config/cmake_ext_mod,cmake/ext_mod,,"ConfigureChecks.cmake,HDFMacros.cmake,HDFLibMacros.cmake,c"
-hdf,hdf,,CmakeLists.txt
+hdf,hdf,,CMakeLists.txt
 hdf/examples,hdf/examples,skip,
 hdf/fortran,hdf/fortran,skip,
 hdf/src,hdf/src,,"c,h,inc"
-hdf/test,hdf/test,,"c,h,inc,cmake"
+hdf/test,hdf/test,,"c,h,inc,cmake,txt"
 hdf/test/test_files,hdf/test/test_files,,"dat,hdf"
 hdf/util,hdf/util,skip,
 java,java,skip,

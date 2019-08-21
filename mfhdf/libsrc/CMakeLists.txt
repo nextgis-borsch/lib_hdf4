@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
 ################################################################################
-# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -101,7 +101,7 @@ if (WIN32)
     set_property (TARGET ${HDF4_MF_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "NO_SYS_XDR_INC")
   endif ()
 endif ()
-set (install_targets ${HDF4_MF_LIB_TARGET})
+set (install_targets ) # ${HDF4_MF_LIB_TARGET})
 
 if (BUILD_SHARED_LIBS)
   add_library (${HDF4_MF_LIBSH_TARGET} SHARED ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})

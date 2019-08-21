@@ -157,7 +157,10 @@ set_target_properties (${HDF4_SRC_LIB_TARGET} PROPERTIES
 if (WIN32)
   set_property (TARGET ${HDF4_SRC_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "DOS_FS")
 endif (WIN32)
-set (install_targets ${HDF4_SRC_LIB_TARGET})
+
+if(BUILD_STATIC_LIBS)
+    set (install_targets ${HDF4_SRC_LIB_TARGET})
+endif()
 
 if (BUILD_SHARED_LIBS)
   add_library (${HDF4_SRC_LIBSH_TARGET} SHARED ${HDF4_HDF_SRC_CSRCS} ${HDF4_HDF_SRC_CHDRS} ${HDF4_BINARY_DIR}/h4config.h)

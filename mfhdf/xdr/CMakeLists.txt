@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
 ################################################################################
-# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,10 @@ INCLUDE_DIRECTORIES (${HDF4_MFHDF_XDR_DIR})
 
 add_library (${HDF4_MF_XDR_LIB_TARGET} STATIC ${HDF4_MFHDF_XDR_SRCS} ${HDF4_MFHDF_XDR_HDRS})
 if (MSVC OR MINGW)
-  target_link_libraries (${HDF4_MF_XDR_LIB_TARGET} "ws2_32.lib")
+  target_link_libraries (${HDF4_MF_XDR_LIB_TARGET} PRIVATE "ws2_32.lib")
 endif ()
 TARGET_C_PROPERTIES (${HDF4_MF_XDR_LIB_TARGET} STATIC " " " ")
+set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_MF_XDR_LIB_TARGET}")
 H4_SET_LIB_OPTIONS (${HDF4_MF_XDR_LIB_TARGET} ${HDF4_MF_XDR_LIB_NAME} STATIC)
 set_target_properties (${HDF4_MF_XDR_LIB_TARGET} PROPERTIES
     FOLDER libraries
@@ -64,7 +65,7 @@ endif()
 if (BUILD_SHARED_LIBS)
   add_library (${HDF4_MF_XDR_LIBSH_TARGET} SHARED ${HDF4_MFHDF_XDR_SRCS} ${HDF4_MFHDF_XDR_HDRS})
   if (MSVC OR MINGW)
-    target_link_libraries (${HDF4_MF_XDR_LIBSH_TARGET} "ws2_32.lib")
+    target_link_libraries (${HDF4_MF_XDR_LIBSH_TARGET} PRIVATE "ws2_32.lib")
   endif ()
   TARGET_C_PROPERTIES (${HDF4_MF_XDR_LIBSH_TARGET} SHARED " " " ")
   set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_MF_XDR_LIBSH_TARGET}")

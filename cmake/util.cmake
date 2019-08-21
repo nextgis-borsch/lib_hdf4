@@ -105,7 +105,7 @@ function(get_cpack_filename ver name)
 
     get_prefix(STATIC_PREFIX ${BUILD_STATIC_LIBS})
 
-    set(${name} ${PROJECT_NAME}-${ver}-${STATIC_PREFIX}${COMPILER} PARENT_SCOPE)
+    set(${name} ${PROJECT_LOWER_NAME}-${ver}-${STATIC_PREFIX}${COMPILER} PARENT_SCOPE)
 endfunction()
 
 function(get_compiler_version ver)

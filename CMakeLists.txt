@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
 ################################################################################
-# Copyright (C) 2015-2018, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -579,9 +579,8 @@ if (SZIP_FOUND)
     set (H4_HAVE_LIBSZ 1)
 endif()
 
-set(LINK_LIBS ${LINK_LIBS} ${TARGET_LINK_LIB})
-set(LINK_SHARED_LIBS ${LINK_SHARED_LIBS} ${TARGET_LINK_LIB})
-# set(LINK_COMP_LIBS ${LINK_COMP_LIBS} ${TARGET_LINK_LIB})
+set(LINK_COMP_SHARED_LIBS ${LINK_SHARED_LIBS} ${TARGET_LINK_LIB})
+set(LINK_COMP_LIBS ${LINK_COMP_LIBS} ${TARGET_LINK_LIB})
 
 set(PACKAGE_NAME ${PROJECT_LOWER_NAME})
 set(PACKAGE_UPPER_NAME ${PROJECT_NAME})

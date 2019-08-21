@@ -38,6 +38,7 @@ endif ()
 
 set (NC_OLD_FILLVALUES 0)
 
+
 set (HDF4_MFHDF_LIBSRC_CSRCS
     ${HDF4_MFHDF_LIBSRC_SOURCE_DIR}/array.c
     ${HDF4_MFHDF_LIBSRC_SOURCE_DIR}/attr.c
@@ -71,10 +72,10 @@ set (HDF4_MFHDF_LIBSRC_CHDRS
 
 if (HDF4_ENABLE_NETCDF)
   configure_file (${HDF4_MFHDF_LIBSRC_SOURCE_DIR}/netcdf.h.in ${HDF4_BINARY_DIR}/netcdf.h)
-  set (HDF4_MFHDF_LIBSRC_CHDRS ${HDF4_MFHDF_LIBSRC_CHDRS} ${HDF4_BINARY_DIR}/netcdf.h)
+  set (HDF4_MFHDF_LIBSRC_XCHDRS ${HDF4_BINARY_DIR}/netcdf.h)
 else ()
   configure_file (${HDF4_MFHDF_LIBSRC_SOURCE_DIR}/netcdf.h.in ${HDF4_BINARY_DIR}/hdf4_netcdf.h)
-  set (HDF4_MFHDF_LIBSRC_CHDRS ${HDF4_MFHDF_LIBSRC_CHDRS}  ${HDF4_BINARY_DIR}/hdf4_netcdf.h)
+  set (HDF4_MFHDF_LIBSRC_XCHDRS ${HDF4_BINARY_DIR}/hdf4_netcdf.h)
 endif ()
 
 include_directories (${HDF4_HDFSOURCE_DIR})
@@ -82,11 +83,12 @@ include_directories (${HDF4_MFHDFSOURCE_DIR})
 
 add_library (${HDF4_MF_LIB_TARGET} STATIC ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})
 if (HDF4_BUILD_XDR_LIB)
-  include_directories (${HDF4_MFHDF_XDR_DIR})
-  target_link_libraries (${HDF4_MF_LIB_TARGET} PRIVATE ${HDF4_MF_XDR_LIB_TARGET})
+  target_include_directories (${HDF4_MF_LIB_TARGET} PUBLIC ${HDF4_MFHDF_XDR_DIR})
+  target_link_libraries (${HDF4_MF_LIB_TARGET} PUBLIC ${HDF4_MF_XDR_LIB_TARGET})
 endif ()
 TARGET_C_PROPERTIES (${HDF4_MF_LIB_TARGET} STATIC " " " ")
 target_link_libraries (${HDF4_MF_LIB_TARGET} PRIVATE ${HDF4_SRC_LIB_TARGET})
+set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_MF_LIB_TARGET}")
 H4_SET_LIB_OPTIONS (${HDF4_MF_LIB_TARGET} ${HDF4_MF_LIB_NAME} STATIC)
 set_target_properties (${HDF4_MF_LIB_TARGET} PROPERTIES
     FOLDER libraries
@@ -95,22 +97,17 @@ set_target_properties (${HDF4_MF_LIB_TARGET} PROPERTIES
 )
 if (WIN32)
   set_property (TARGET ${HDF4_MF_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "DOS_FS;SWAP")
+  if (HDF4_BUILD_XDR_LIB)
+    set_property (TARGET ${HDF4_MF_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "NO_SYS_XDR_INC")
+  endif ()
 endif ()
-
-if (HDF4_BUILD_XDR_LIB)
-  set_property (TARGET ${HDF4_MF_LIB_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "NO_SYS_XDR_INC")
-endif ()
-
-if(BUILD_STATIC_LIBS)
-    set_global_variable (HDF4_LIBRARIES_TO_EXPORT "${HDF4_LIBRARIES_TO_EXPORT};${HDF4_MF_LIB_TARGET}")
-    set (install_targets ${HDF4_MF_LIB_TARGET})
-endif()
+set (install_targets ${HDF4_MF_LIB_TARGET})
 
 if (BUILD_SHARED_LIBS)
   add_library (${HDF4_MF_LIBSH_TARGET} SHARED ${HDF4_MFHDF_LIBSRC_CSRCS} ${HDF4_MFHDF_LIBSRC_CHDRS})
   if (HDF4_BUILD_XDR_LIB)
-    INCLUDE_DIRECTORIES (${HDF4_MFHDF_XDR_DIR})
-    target_link_libraries (${HDF4_MF_LIBSH_TARGET} PRIVATE ${HDF4_MF_XDR_LIBSH_TARGET})
+    target_include_directories (${HDF4_MF_LIBSH_TARGET} PUBLIC ${HDF4_MFHDF_XDR_DIR})
+    target_link_libraries (${HDF4_MF_LIBSH_TARGET} PUBLIC ${HDF4_MF_XDR_LIBSH_TARGET})
   endif ()
   TARGET_C_PROPERTIES (${HDF4_MF_LIBSH_TARGET} SHARED " " " ")
   target_link_libraries (${HDF4_MF_LIBSH_TARGET} PRIVATE ${HDF4_SRC_LIBSH_TARGET})
@@ -192,15 +189,11 @@ endif()
 
 # Copy dll's for tests
 if(WIN32)
-    file(GLOB_RECURSE IMPORTED_WIN_DLLS ${CMAKE_BINARY_DIR}/third-party/*.dll)
-    foreach(IMPORTED_WIN_DLL ${IMPORTED_WIN_DLLS})
-        add_custom_command(TARGET ${HDF4_MF_LIBSH_TARGET}
-                            POST_BUILD
-                            COMMAND ${CMAKE_COMMAND} -E copy ${IMPORTED_WIN_DLL} $<TARGET_FILE_DIR:${HDF4_MF_LIBSH_TARGET}>
-                            COMMENT "Copy ${IMPORTED_WIN_DLL} to ${HDF4_MF_LIBSH_TARGET} out directory"
-                        )
-
-    endforeach()
+    add_custom_command(TARGET ${HDF4_MF_LIBSH_TARGET}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -DDST_PATH="$<TARGET_FILE_DIR:${HDF4_MF_LIBSH_TARGET}>" -DSRC_PATH="${PROJECT_BINARY_DIR}" -P ${PROJECT_SOURCE_DIR}/cmake/test_dependency.cmake
+        COMMENT "Copy DLLs"
+    )
 endif()
 
 # Create the <Package>Config.cmake file

@@ -1,7 +1,7 @@
-.,.,,"COPYING,README.txt,UserMacros.cmake"
+.,.,,"COPYING,README.txt,cmake"
 bin,bin,skip,
 config/cmake,cmake,,"in,ConfigureChecks.cmake,HDF4Macros.cmake,FindXDR.cmake,CTestCustom.cmake"
-config/cmake_ext_mod,cmake/ext_mod,,"ConfigureChecks.cmake,HDFMacros.cmake,HDFLibMacros.cmake,c"
+config/cmake_ext_mod,cmake/ext_mod,,"ConfigureChecks.cmake,HDFMacros.cmake,HDFLibMacros.cmake,c,runTest.cmake,grepTest.cmake"
 hdf,hdf,,txt
 hdf/examples,hdf/examples,skip,
 hdf/fortran,hdf/fortran,skip,
@@ -19,7 +19,7 @@ mfhdf/fortran,mfhdf/fortran,skip,
 mfhdf/hdfimport,mfhdf/hdfimport,skip,
 mfhdf/hdiff,mfhdf/hdiff,skip,
 mfhdf/hrepack,mfhdf/hrepack,skip,
-mfhdf/libsrc,mfhdf/libsrc,,"h,c"
+mfhdf/libsrc,mfhdf/libsrc,,"h,c,in"
 mfhdf/ncdump,mfhdf/ncdump,skip,
 mfhdf/ncgen,mfhdf/ncgen,skip,
 mfhdf/nctest,mfhdf/nctest,skip,

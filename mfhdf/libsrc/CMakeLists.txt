@@ -78,6 +78,8 @@ else ()
   set (HDF4_MFHDF_LIBSRC_XCHDRS ${HDF4_BINARY_DIR}/hdf4_netcdf.h)
 endif ()
 
+set (HDF4_MFHDF_LIBSRC_CHDRS ${HDF4_MFHDF_LIBSRC_CHDRS} ${HDF4_MFHDF_LIBSRC_XCHDRS})
+
 include_directories (${HDF4_HDFSOURCE_DIR})
 include_directories (${HDF4_MFHDFSOURCE_DIR})
 

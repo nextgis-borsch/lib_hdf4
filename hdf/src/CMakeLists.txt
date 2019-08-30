@@ -117,7 +117,7 @@ set (HDF4_HDF_SRC_CHDRS
     ${HDF4_HDF_SRC_SOURCE_DIR}/dynarray.h
     ${HDF4_HDF_SRC_SOURCE_DIR}/glist.h
     ${HDF4_HDF_SRC_SOURCE_DIR}/H4api_adpt.h
-    #${HDF4_BINARY_DIR}/h4config.h
+    ${HDF4_BINARY_DIR}/h4config.h
     ${HDF4_HDF_SRC_SOURCE_DIR}/hbitio.h
     ${HDF4_HDF_SRC_SOURCE_DIR}/hchunks.h
     ${HDF4_HDF_SRC_SOURCE_DIR}/hcomp.h
@@ -205,7 +205,7 @@ endif ()
 # Add file(s) to CMake Install
 #-----------------------------------------------------------------------------
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
-    INSTALL (
+    install (
     FILES
         ${HDF4_HDF_SRC_CHDRS}
     DESTINATION

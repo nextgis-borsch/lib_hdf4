@@ -104,6 +104,8 @@ if (WIN32)
   endif ()
 endif ()
 
+target_include_directories(${HDF4_MF_LIB_TARGET} INTERFACE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+
 if(BUILD_STATIC_LIBS)
     set (install_targets ${HDF4_MF_LIB_TARGET})
 endif()
@@ -125,6 +127,8 @@ if (BUILD_SHARED_LIBS)
       INTERFACE_INCLUDE_DIRECTORIES "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
       INTERFACE_COMPILE_DEFINITIONS H4_BUILT_AS_DYNAMIC_LIB=1
   )
+  target_include_directories(${HDF4_MF_LIBSH_TARGET} INTERFACE $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+
   if (WIN32)
     set_property (TARGET ${HDF4_MF_LIBSH_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS "DOS_FS;SWAP")
     if (HDF4_BUILD_XDR_LIB)
@@ -193,13 +197,15 @@ install (
 )
 endif()
 
-# Copy dll's for tests
-if(WIN32)
-    add_custom_command(TARGET ${HDF4_MF_LIBSH_TARGET}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -DDST_PATH="$<TARGET_FILE_DIR:${HDF4_MF_LIBSH_TARGET}>" -DSRC_PATH="${PROJECT_BINARY_DIR}" -P ${HDF_RESOURCES_DIR}/test_dependency.cmake
-        COMMENT "Copy DLLs"
-    )
+if(NOT BUILD_SHARED_LIBS)
+    # Copy dll's for tests
+    if(WIN32)
+        add_custom_command(TARGET ${HDF4_MF_LIBSH_TARGET}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -DDST_PATH="$<TARGET_FILE_DIR:${HDF4_MF_LIBSH_TARGET}>" -DSRC_PATH="${PROJECT_BINARY_DIR}" -P ${HDF_RESOURCES_DIR}/test_dependency.cmake
+            COMMENT "Copy DLLs"
+        )
+    endif()
 endif()
 
 # Create the <Package>Config.cmake file

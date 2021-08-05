@@ -3,7 +3,7 @@
 # Purpose:  CMake build scripts
 # Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
 ################################################################################
-# Copyright (C) 2015-2019, NextGIS <info@nextgis.com>
+# Copyright (C) 2015-2021, NextGIS <info@nextgis.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -616,6 +616,7 @@ else ()
 endif ()
 
 if (HDF4_BUILD_XDR_LIB)
+  set (H4_NO_SYS_XDR_INC 1)
   add_subdirectory (${HDF4_SOURCE_DIR}/mfhdf/xdr ${PROJECT_BINARY_DIR}/xdr)
 endif ()
 

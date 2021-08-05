@@ -1,13 +1,6 @@
-cmake_minimum_required (VERSION 3.2.2)
-project (HDF4_HDF_TEST C CXX)
+cmake_minimum_required (VERSION 3.10)
+project (HDF4_HDF_TEST C)
 
-#-----------------------------------------------------------------------------
-# Setup include Directories
-#-----------------------------------------------------------------------------
-INCLUDE_DIRECTORIES (
-    ${HDF4_HDF_BINARY_DIR}
-    ${HDF4_HDFSOURCE_DIR}
-)
 LINK_DIRECTORIES (
     ${HDF4_HDF_BINARY_DIR}
     ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
@@ -53,41 +46,30 @@ set (testhdf_SRCS
     ${HDF4_HDF_TEST_SOURCE_DIR}/vers.c
   )
 
-if (WIN32)
-  add_definitions (-DDOS_FS)
-endif ()
-
 #-- Adding test for testhdf
 add_executable (testhdf ${testhdf_SRCS})
-TARGET_C_PROPERTIES (testhdf STATIC " " " ")
-target_link_libraries (testhdf PRIVATE ${HDF4_SRC_LIB_TARGET} ${LINK_COMP_LIBS})
-set_target_properties (testhdf PROPERTIES FOLDER test)
-if (BUILD_SHARED_LIBS)
-  add_executable (testhdf-shared ${testhdf_SRCS})
-  TARGET_C_PROPERTIES (testhdf-shared SHARED " " " ")
-  target_link_libraries (testhdf-shared PRIVATE ${HDF4_SRC_LIBSH_TARGET} ${LINK_COMP_LIBS})
-  set_target_properties (testhdf-shared PROPERTIES FOLDER test)
+target_include_directories(testhdf PRIVATE "${HDF4_HDF_BINARY_DIR};${HDF4_HDFSOURCE_DIR}")
+if (NOT BUILD_SHARED_LIBS)
+  TARGET_C_PROPERTIES (testhdf STATIC)
+  target_link_libraries (testhdf PRIVATE ${HDF4_SRC_LIB_TARGET} ${LINK_COMP_LIBS})
+else ()
+  TARGET_C_PROPERTIES (testhdf SHARED)
+  target_link_libraries (testhdf PRIVATE ${HDF4_SRC_LIBSH_TARGET} ${LINK_COMP_LIBS})
 endif ()
+set_target_properties (testhdf PROPERTIES FOLDER test)
 
 #-- Adding test for buffer
 if (NOT WIN32)
   add_executable (buffer ${HDF4_HDF_TEST_SOURCE_DIR}/buffer.c)
-  TARGET_C_PROPERTIES (buffer STATIC " " " ")
-  target_link_libraries (buffer PRIVATE ${HDF4_SRC_LIB_TARGET})
-  set_target_properties (buffer PROPERTIES FOLDER test)
-  if (BUILD_SHARED_LIBS)
-    add_executable (buffer-shared ${HDF4_HDF_TEST_SOURCE_DIR}/buffer.c)
-    TARGET_C_PROPERTIES (buffer-shared SHARED " " " ")
-    target_link_libraries (buffer-shared PRIVATE ${HDF4_SRC_LIBSH_TARGET})
-    set_target_properties (buffer-shared PROPERTIES FOLDER test)
+  target_include_directories(buffer PRIVATE "${HDF4_HDF_BINARY_DIR};${HDF4_HDFSOURCE_DIR}")
+  if (NOT BUILD_SHARED_LIBS)
+    TARGET_C_PROPERTIES (buffer STATIC)
+    target_link_libraries (buffer PRIVATE ${HDF4_SRC_LIB_TARGET})
+  else ()
+    TARGET_C_PROPERTIES (buffer SHARED)
+    target_link_libraries (buffer PRIVATE ${HDF4_SRC_LIBSH_TARGET})
   endif ()
+  set_target_properties (buffer PROPERTIES FOLDER test)
 endif ()
 
-##############################################################################
-##############################################################################
-###           T H E   T E S T S                                            ###
-##############################################################################
-##############################################################################
-
 include (CMakeTests.cmake)
-

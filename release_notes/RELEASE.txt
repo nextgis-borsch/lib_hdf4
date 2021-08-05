@@ -1,13 +1,13 @@
-HDF version 4.2.14 released on 2018-06-26
+HDF version 4.2.15 released on 2020-03-03
 ====================================================
 
 INTRODUCTION
 
-This document describes the differences between this release and the 
-HDF 4.2.13 release.  It is written for people who are familiar with 
+This document describes the differences between this release and the
+HDF 4.2.14 release.  It is written for people who are familiar with
 previous releases of HDF and wish to migrate to this version of HDF.
 
-Note that the HDF4 documentation will be updated at the time of 
+Note that the HDF4 documentation will be updated at the time of
 each final release and can be found on the HDF4 support page at:
 
     https://portal.hdfgroup.org/display/HDF4/HDF4
@@ -25,7 +25,7 @@ CONTENTS
 - New features and changes
   -- Configuration
 - Support for new platforms and compilers
-- Bugs fixed since HDF 4.2.13
+- Bugs fixed since HDF 4.2.14
   -- Configuration
   -- Library
   -- Utilities
@@ -36,105 +36,119 @@ CONTENTS
 
 New features and changes
 ========================
-
     Configuration:
     -------------
-    - CMake
+    - Updated configuration for both build systems
 
-      Refactor use of CMAKE_BUILD_TYPE for new variable, which understands
-      the type of generator in use.
+      Synchronized configuration variables between build systems to create
+      the same variables in h4config.h. Replaced the defines used in #ifdef
+      blocks with the appropriate H4_XXX defines. Updated the internal xdr
+      code to handle the different size of integers across platforms.
+      Also removed the restriction on building 64-bit platforms. Users on
+      macOS platforms (10.13 and newer) must build with the hdf4 xdr by
+      adding the following options during configuration:
+        autotools add "--enable-hdf4-xdr"
+        CMake add "HDF4_BUILD_XDR_LIB:BOOL=ON"
+      See INSTALL file for details on configure options.
 
-      Added new configuration macros to use new HDF_BUILD_TYPE variable. This
-      variable is set correctly for the type of generator being used for the build.
-      Changes follow from hdf5.
+      (ADB - 2020/02/21)
 
-      (ADB - 2018/01/08, HDFFV-10385, HDFFV-10296)
+    - Update CMake for VS2019 support
 
-    - XDR
+      CMake added support for VS2019 in version 3.15. Changes to the CMake
+      generator setting required changes to scripts. Also updated version
+      references in CMake files as necessary.
 
-      glibc stopped installing rpc headers by default back in 2011:
-      versions 2.14 and 2.15 never install them, versions 2.16 and
-      higher require the configuration option --enable-obsolete-rpc.
-      Most distros still install the headers for backwards compatibility,
-      but Fedora 28 has now stopped support.
+      (ADB - 2019/11/18, HDFFR-1581)
 
-      The preferred library is libtirpc. On Fedora 28, install the
-      libtirpc-devel package.
+    - Update CMake tests to use FIXTURES
 
-      (ADB - 2018/05/29, HDFFR-1568)
+      CMake test fixtures allow setup/cleanup tests and other dependency
+      requirements as properties for tests. This is more flexible for
+      modern CMake code.
+
+      (ADB - 2019/07/23, HDFFV-10529)
+
+    - Windows PDB files are always installed
+
+      There are build configuration or flag settings for Windows that may not
+      generate PDB files. If those files are not generated then the install
+      utility will fail because those PDB files are not found. An optional
+      variable, DISABLE_PDB_FILES, was added to not install PDB files.
+
+      (ADB - 2019/07/17, HDFFV-10424)
+
+    - Add mingw CMake support with a toolchain file
+
+      There has been a number of mingw issues that has been linked under
+      HDFFV-10845. It has been decided to implement the CMake cross-compiling
+      technique of toolchain files. We will use a linux platform with the mingw
+      compiler stack for testing. Only the C language is fully supported, and
+      the error tests are skipped. The C++ language works for static but shared
+      builds has a shared library issue with the mingw Standard Exception Handling
+      library, which is not available on Windows. Fortran has a common cross-compile
+      problem with the fortran configure tests.
+
+      (ADB - 2019/07/12, HDFFV-10845, HDFFV-10595)
+
+    - Windows PDB files are installed incorrectly
+
+      For static builds, the PDB files for windows should be installed next
+      to the static libraries in the lib folder. Also the debug versions of
+      libraries and PDB files are now correctly built using the default
+      CMAKE_DEBUG_POSTFIX setting.
+
+      (ADB - 2019/07/09, HDFFV-10581)
+
+    - Add option to build only shared libs
+
+      A request was made to prevent building static libraries and only build
+      shared.  A new option was added to CMake, ONLY_SHARED_LIBS, which will
+      skip building static libraries. Certain utility functions will build with
+      static libs but are not published. Tests are adjusted to use the correct
+      libraries depending on SHARED/STATIC settings.
+
+      (ADB - 2019/06/12, HDFFV-10805)
+
 
 
 Support for new platforms and compilers
 =======================================
 
+    - CMake added support for VS2019 in version 3.15. Updated scripts.
 
-Bugs fixed since HDF 4.2.13
+    - macOS 10.13.6, Darwin 17.7.0 with Apple clang LLVM version 10.0.0
+
+    - macOS 10.14.6, Darwin 18.7.0 with Apple clang LLVM version 10.0.1
+
+
+Bugs fixed since HDF 4.2.14
 ===========================
-    Configuration:
-    -------------
-    - CMake
 
-      Update CMake commands configuration.
+    - netCDF test failed on multiple Mac
 
-      A number of improvements were made to the CMake commands. Most
-      changes simplify usage or eliminate unused constructs. Also,
-      some changes support better cross-platform support. Changes
-      follow from hdf5.
+      The netCDF test in the hdf4 library had failed either with segfault
+      or incorrect reading data on multiple versions of Mac machines, when
+      compiling with -O2.  The segfault appeared to happen during the use
+      of various system XDR functions.  In previous releases, -O0 level
+      optimization was used to avoid this problem.  In this release, the
+      hdf4's internal xdr library has been updated to handle the different
+      size of integers across platforms, based on the newer tirpc library
+      code and netCDF xdr code.
 
-      (ADB - 2018/02/01, HDFFV-10398)
+      (ADB/BMR/LRK - 2020/02/15, EED-439)
 
-    - CMake
+    - Several memory leaks are fixed
 
-      Correct usage of CMAKE_BUILD_TYPE variable.
+      There were memory leaks caused by the allocated xdr structure not released
+      and several missing to free allocated buffers in tests.  These are now fixed.
 
-      The use of the CMAKE_BUILD_TYPE is incorrect for multi-config
-      generators (Visual Studio and XCode) and is optional for single
-      config generators. Created a new macro to check
-        GLOBAL PROPERTY -> GENERATOR_IS_MULTI_CONFIG
-      Created two new HDF variable, HDF_BUILD_TYPE and HDF_CFG_BUILD_TYPE.
-      Defaults for these variables is "Release". Changes
-      follow from hdf5.
-
-    Library:
-    --------
-    - Removal of a memory leak
-
-      HTPendaccess was missing from HRPendaccess and resulting in a memory
-      leak.  This is now fixed.
-
-      (BMR - 2018/06/18, HDFFR-1560)
-
-    - Fortran
-
-      Changed array data constructor to be g77 compatible. Updated
-      INSTALL notes about FFLAGS for g77.
-
-      (MSB - 2018/05/23, HDFFR-1553)
-
-    - Java
-
-      JNI functions called routine with wrong interface.
-
-      GRsetchunk, GRsetchunkcache changed from SD in hdfgrImp.c.
-      SDfileinfo changed from SD in hdfsdsImp.c.
-
-      (ADB - 2018/05/29, HDFFR-1565)
-
-    - Java
-
-      JNI functions used wrong constants.
-
-      MAX_VAR_DIMS and MAX_NC_NAME should have been H4_MAX_VAR_DIMS and H4_MAX_NC_NAME.
-      MAX_VAR_DIMS used in Java source is assigned the H4_MAX_VAR_DIMS value.
-
-      (ADB - 2018/05/29, HDFFR-1563)
+      (BMR - 2019/11/15)
 
 
 Documentation
 =============
-    - Various minor improvements are made to the User's Guide and Reference Manual.
 
-      (BMR - 2018/06/26)
 
 Platforms tested
 ================
@@ -146,75 +160,72 @@ This version has been tested in the following platforms:
 
 
 
-   Linux 2.6.32-573.22.1.el6.x86_64  gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-16)
+   Linux 2.6.32-754.11.1.el6.x86_64  gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-16)
    #1 SMP, x86_64                    GNU Fortran (GCC) 4.4.7 20120313 (Red Hat 4.4.7-16)
    (mayll/platypus)                  icc (ICC) 17.0.0.098 Build 20160721
                                      ifort (IFORT) 17.0.0.098 Build 20160721
-                                     pgcc and pgf90 17.10-0 64-bit target 
+                                     pgcc and pgf90 17.10-0 64-bit target
                                          on x86-64 Linux -tp nehalem
 
-   Linux, 3.10.0-327.10.1.el7.x86_64 gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-4)
-   #1 SMP x86_64, GNU/Linux          GNU Fortran (GCC) 4.8.5 20150623 (Red Hat 4.8.5-4)
-   (jelly/moohan)                    icc (ICC) 17.0.0.098 Build 20160721
-                                     ifort (IFORT) 17.0.0.098 Build 20160721
+   Linux, 3.10.0-327.18.2.el7.x86_64 GNU C (gcc) and Fortran (gfortran) compilers:
+   #1 SMP x86_64, GNU/Linux             Version 4.8.5 20150623 (Red Hat 4.8.5-4)  
+   jelly/moohan)                        Version 4.9.3, 5.3.0, 6.2.0, 7.1.0, 8.3.0
+                                     Intel(R) C (icc) and Fortran (ifort) compilers: 
+                                        Version 17.0.0.098 Build 20160721
                                      pgcc and pgf90 17.10-0 64-bit target
                                          on x86-64 Linux -tp haswell
 
-   Linux, 2.6.32-573.18.1.el6.ppc64  gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-18)
-   #1 SMP, ppc64 (ostrich)           (1) GNU Fortran (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
-                                     (2) IBM XL Fortran for Linux, V15.1 (64-bit mode)
+   Linux, 2.6.32-573.18.1.el6.ppc64  GNU C (gcc) and Fortran (gfortran) compilers: 
+   #1 SMP, ppc64 (ostrich)             Version 4.4.7 20120313 (Red Hat 4.4.7-18)
+                                     Fortran (xlf)  for Linux Version 15.1 
 
    SunOS 5.11 (32- and 64-bit)       Sun C 5.12 SunOS_sparc 2011/11/16
    11.1, sparc, sun4v (emu)          Sun Fortran 95 8.6 SunOS_sparc 2011/11/16
 
-    Windows 7                     Visual Studio 2012 w/ Intel Fortran 15 (cmake)
-                                  Visual Studio 2013 w/ Intel Fortran 15 (cmake)
-                                  Visual Studio 2015 w/ Intel Fortran 16 (cmake)
+    Windows 7 x64                    Visual Studio 2015 w/ Intel C, Fortran 2018 (cmake)
 
-    Windows 7 x64                 Visual Studio 2012 w/ Intel Fortran 15 (cmake)
-                                  Visual Studio 2013 w/ Intel Fortran 15 (cmake)
-                                  Visual Studio 2015 w/ Intel Fortran 16 (cmake)
-                                  Visual Studio 2015 w/ Intel C, Fortran 2017 (cmake)
+    Windows 10 x64                   Visual Studio 2015 w/ Intel C, Fortran 2018 (cmake)
+                                     Visual Studio 2017 w/ Intel C, Fortran 2019 (cmake)
+                                     Visual Studio 2019 w/ Intel C, Fortran 2019 (cmake)
 
-    Windows 10                    Visual Studio 2015 w/ Intel Fortran 16 (cmake)
-                                  Cygwin(CYGWIN_NT-6.1 2.8.0(0.309/5/3)
-                                      gcc and gfortran compilers (GCC 5.4.0)
-                                      (cmake and autotools)
-
-    Windows 10 x64                Visual Studio 2015 w/ Intel Fortran 16 (cmake)
-
-
-   Mac OS X 10.10.5, Darwin, 14.5.0  Apple clang version 6.1 from Xcode 7.0
-   x86_64                            gfortran GNU Fortran (GCC) 4.9.2
-   (osx1010dev)                      Intel icc and ifort version 15.0.3
 
    Mac OS X 10.11.5, Darwin, 15.6.0  Apple clang version 7.3 from Xcode 7.3
    x86_64                            gfortran GNU Fortran (GCC) 5.2.0
-   (osx1010dev)                      Intel icc and ifort version 15.0.3
+   (osx1011test)                     Intel icc and ifort version 15.0.3
 
    macOS Sierra 10.12.5, Darwin,     Apple clang version 8.1.0 from Xcode 8.3
-   16.6.0, x86_64                    gfortran GNU Fortran (GCC) 7.1.0
+   16.6.0, x86_64                    gfortran GNU Fortran (GCC) 7.4.0
    (kite)                            Intel icc and ifort version 17.0.2
 
-   Debian 8.6.0 3.16.0-4-amd64
-   #1 SMP Debian 3.16.43-2, x86_64 GNU/Linux
-                                     gcc (Debian 4.9.2-10) 4.9.2
-                                     GNU Fortran (Debian 4.9.2-10) 4.9.2
+   macOS 10.13.6, Darwin,            Apple clang LLVM version 10.0.0
+   17.7.0, x86_64                    gfortran GNU Fortran (GCC) 6.3.0
+   (bear)                            Intel icc and ifort version 19.0.4
+
+   macOS 10.14.6, Darwin,            Apple clang LLVM version 10.0.1
+   18.7.0, x86_64                    gfortran GNU Fortran (GCC) 6.3.0
+   (bobcat)                          Intel icc version 19.0.4
+
+   Fedora30 5.3.11-200.fc30.x86_64
+   #1 SMP x86_64  GNU/Linux          gcc (GCC) 9.2.1 20190827 (Red Hat 9.2.1 20190827)
+                                     GNU Fortran (GCC) 9.2.1 20190827 (Red Hat 9.2.1 20190827)
                                      (cmake and autotools)
 
-   Fedora24 4.7.2-201.fc24.x86_64
-   #1 SMP x86_64  GNU/Linux          gcc (GCC) 6.1.1 20160621 (Red Hat 6.1.1-3)
-                                     GNU Fortran (GCC) 6.1.1 20160621 (Red Hat 6.1.1-3)
+   Linux, 4.15.0-1051-aws
+   #53-Ubuntu SMP, x86_64, x86_64    gcc (Ubuntu 7.4.0-1ubuntu18.04.1) 7.4.0
+                                     GNU Fortran (Ubuntu 7.4.0-1ubuntu18.04.1) 7.4.0
                                      (cmake and autotools)
-
-   Ubuntu 16.04.1 4.4.0-38-generic
-   #57-Ubuntu SMP x86_64 GNU/Linux   gcc (Ubuntu 5.4.0-6ubuntu16.04.4) 5.4.0
-                                     GNU Fortran (Ubuntu 5.4.0-6ubuntu16.04.4) 5.4.0
-                                     (cmake and autotools)
-
 
 Known problems
 ==============
+o  Builds with the autotools option --enable-hdf4-xdr fail on Solaris and
+   on IBM ppc64 with the xlc compiler.  The option should not be used on 
+   those platforms.
+   
+o  CMake files do not behave correctly with paths containing spaces.
+   Do not use spaces in paths because the required escaping for handling spaces
+   results in very complex and fragile build files.
+   ADB - 2019/05/07
+
 o  Several Fortran examples print "^@" when displaying strings (for example,
    names of the attributes). This happens because Fortran application
    doesn't know the length of the strings passed from the C library.
@@ -239,6 +250,7 @@ o  For Mac OS X 10.7 Lion, 10.8 Mountain Lion, 10.9 Mavericks, 10.10 Yosemite,
    memory corruption.  This happened for GCC, Intel and Clang compilers.
    Currently, -O0 level optimization is used to avoid this problem.
    (HDFFR-1318,1327,1358,1425) EIP - 2013/02/05, BMR - 2016/06/24
+   Update: This issue has been addressed in 4.2.15. BMR - 2020/02/24
 
 o  On IBM PowerPC 64, hdftest fails when gcc 4.4.6 is used with -O3 optimization
    level.

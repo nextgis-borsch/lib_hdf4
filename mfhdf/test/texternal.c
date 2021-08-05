@@ -319,6 +319,7 @@ static int test_getexternal()
         name_len = SDgetexternalfile(sds_id, name_len+1, extfile_name, &offset);
         VERIFY(name_len, (intn)HDstrlen(EXTFILE), "SDgetexternalfile");
         VERIFY_CHAR(EXTFILE, extfile_name, "SDgetexternalfile");
+        HDfree(extfile_name);
     }
 
     /* Call SDgetexternalinfo the first time passing in 0 for external
@@ -329,15 +330,16 @@ static int test_getexternal()
     /* Test passing in NULL pointer for external file name buffer, should
     fail gracefully */
     {
-    char *null_buffer=NULL;
-    intn ret_code=0;
-    ret_code = SDgetexternalinfo(sds_id, name_len+1, null_buffer, &offset, &length);
-    VERIFY(ret_code, FAIL, "SDgetexternalinfo");
+        char *null_buffer=NULL;
+        intn ret_code=0;
+
+        ret_code = SDgetexternalinfo(sds_id, name_len+1, null_buffer, &offset, &length);
+        VERIFY(ret_code, FAIL, "SDgetexternalinfo");
     }
 
     /* Prepare buffer for external file name */
     extfile_name = (char *) HDmalloc(sizeof(char *) * (name_len+1));
-    CHECK_ALLOC(extfile_name, "extfile_name", "SDgetexternalinfo");
+    CHECK_ALLOC(extfile_name, "extfile_name", "test_getexternal");
     HDmemset(extfile_name, '\0', name_len+1);
 
     /* Call SDgetexternalinfo again and get the external file info */
@@ -349,6 +351,7 @@ static int test_getexternal()
     name should be truncated */
     {
         char *short_name = (char *) HDmalloc(sizeof(char *) * (name_len));
+        CHECK_ALLOC(short_name, "short_name", "test_getexternal");
         HDmemset(short_name, '\0', name_len);
         HDstrncpy(short_name, EXTFILE, name_len-2);
         HDmemset(extfile_name, '\0', name_len);
@@ -360,6 +363,7 @@ static int test_getexternal()
         VERIFY(name_len, (intn)HDstrlen(extfile_name), "SDgetexternalinfo");
         VERIFY_CHAR(short_name, extfile_name, "SDgetexternalinfo");
         HDfree(short_name);
+        HDfree(extfile_name);
     }
 
     /* Close the data set */
@@ -389,13 +393,14 @@ static int test_getexternal()
     }
 
     extfile_name = (char *) HDmalloc(sizeof(char *) * (name_len+1));
-    CHECK_ALLOC(extfile_name, "extfile_name", "SDgetexternalinfo");
+    CHECK_ALLOC(extfile_name, "extfile_name", "test_getexternal");
     HDmemset(extfile_name, '\0', name_len+1);
 
     /* Call SDgetexternalinfo again and get the external file info */
     name_len = SDgetexternalinfo(sds_id, name_len+1, extfile_name, &offset, &length);
     VERIFY(name_len, (intn)HDstrlen(EXTFILE), "SDgetexternalinfo");
     VERIFY_CHAR(EXTFILE, extfile_name, "SDgetexternalinfo");
+    HDfree(extfile_name);
 
     /*
      * Test getting external info on a non-external data set; should return
@@ -440,9 +445,9 @@ static int test_getexternal()
 *********************************************************************/
 int test_mult_setexternal()
 {
-    int32 sd_id, sds1_id, sds2_id, sds3_id, sds4_id;
-    int32 ap_start[3], ap_edges[3], dim_sizes[3];
-    int32 sds1_size=0, sds2_size=0, sds3_size=0;
+    int32 sd_id, sds1_id;
+    int32 dim_sizes[3];
+    int32 sds1_size=0;
     char *extfile_name;
     intn  name_len = 0;
     intn  status = SUCCEED;
@@ -492,7 +497,7 @@ int test_mult_setexternal()
 
     /* Prepare buffer for external file name */
     extfile_name = (char *) HDmalloc(sizeof(char *) * (name_len+1));
-    CHECK_ALLOC(extfile_name, "extfile_name", "SDgetexternalinfo");
+    CHECK_ALLOC(extfile_name, "extfile_name", "test_getexternal");
     HDmemset(extfile_name, '\0', name_len+1);
 
     /* Call SDgetexternalinfo again and get the external file info */
@@ -547,11 +552,10 @@ int test_mult_setexternal()
 *********************************************************************/
 int test_special_combos()
 {
-    int32 sd_id, sds1_id, sds2_id, sds3_id, sds4_id;
-    int32 sds_size;
+    int32 sd_id, sds2_id, sds3_id, sds4_id;
     int32 num_sds = 0, num_attrs = 0;
     int32 ap_start[3], ap_edges[3], dim_sizes[3];
-    int32 sds1_size=0, sds2_size=0, sds3_size=0, sds4_size=0;
+    int32 sds2_size=0, sds3_size=0, sds4_size=0;
     intn  status = 0;
     int   ii, jj, kk;
     intn  num_errs = 0;    /* number of errors in compression test so far */
@@ -662,7 +666,7 @@ int test_special_combos()
     /* Read data of each data sets and verify against the original */
     for (ii = 0; ii < num_sds; ii++)
     {
-    verify_data(sd_id, ii);
+        verify_data(sd_id, ii);
     }
 
     /* Close the file */
@@ -727,8 +731,8 @@ void verify_data(int32 sd_id, int32 sds_ind)
     int32 start[3], edges[3], dims[3];
     intn  status;
     int32 *outdata = NULL, num_elems;
-    int32 outd[140];
     intn  num_errs = 0;    /* number of errors in compression test so far */
+    int32 data_wappended[Z_LENGTH+1][Y_LENGTH][X_LENGTH]; /* Buffer for first written data + appended data */
 
     /* Select the data set. */
     sds_id = SDselect (sd_id, sds_ind);
@@ -747,46 +751,44 @@ void verify_data(int32 sd_id, int32 sds_ind)
     from the rest of the data sets in the file */
     if (!HDstrncmp(name, SDS2, HDstrlen(SDS2)))
     {
-    /* Buffer for first written data + appended data */
-    int32 data_wappended[Z_LENGTH+1][Y_LENGTH][X_LENGTH];
+        /* Number of elements in first written data + appended data */
+        num_elems = Z_LENGTH*Y_LENGTH*X_LENGTH + 1*Y_LENGTH*X_LENGTH;
 
-    /* Number of elements in first written data + appended data */
-    num_elems = Z_LENGTH*Y_LENGTH*X_LENGTH + 1*Y_LENGTH*X_LENGTH;
+        /* Copy buffer of first written data to data_wappended */
+        HDmemcpy(data_wappended, written_data, (Z_LENGTH*Y_LENGTH*X_LENGTH)*sizeof(int));
 
-    /* Copy buffer of first written data to data_wappended */
-    HDmemcpy(data_wappended, written_data, (Z_LENGTH*Y_LENGTH*X_LENGTH)*sizeof(int));
+        /* Forward to the end of first written data */
+        ptr = &data_wappended[Z_LENGTH][0][0];
 
-    /* Forward to the end of first written data */
-    ptr = &data_wappended[Z_LENGTH][0][0];
+        /* Copy appended data to data_wappended */
+        HDmemcpy(ptr, ap_data, (1*Y_LENGTH*X_LENGTH)*sizeof(int));
 
-    /* Copy appended data to data_wappended */
-    HDmemcpy(ptr, ap_data, (1*Y_LENGTH*X_LENGTH)*sizeof(int));
+        /* Back to the beginning of data_wappended */
+        ptr = &data_wappended[0][0][0];
 
-    /* Back to the beginning of data_wappended */
-    ptr = &data_wappended[0][0][0];
-
-    /* Size of data written including appended data */
-    data_size = ((Z_LENGTH+1) * Y_LENGTH*X_LENGTH)*sizeof(int);
-    edges[0] = Z_LENGTH + 1;
+        /* Size of data written including appended data */
+        data_size = ((Z_LENGTH+1) * Y_LENGTH*X_LENGTH)*sizeof(int);
+        edges[0] = Z_LENGTH + 1;
 
     } /* with appended data */
 
     /* Everyone else */
     else
     {
-    /* Point to written data buffer */
+        /* Point to written data buffer */
         ptr = &written_data[0][0][0];
 
-    /* Number of elements */
-    num_elems = Z_LENGTH*Y_LENGTH*X_LENGTH;
+        /* Number of elements */
+        num_elems = Z_LENGTH*Y_LENGTH*X_LENGTH;
 
-    /* Size of data written */
-    data_size = num_elems * sizeof(int);
-    edges[0] = Z_LENGTH;
+        /* Size of data written */
+        data_size = num_elems * sizeof(int);
+        edges[0] = Z_LENGTH;
     }
 
     /* Allocate buffer for reading, after establishing the data size */
     outdata = (int32 *) HDmalloc(data_size);
+    CHECK_ALLOC(outdata, "outdata", "verify_data");
 
     /* Read the entire sds and verify that the data is as the original buffer */
     status = SDreaddata(sds_id, start, NULL, edges, (VOIDP) outdata);
@@ -794,16 +796,20 @@ void verify_data(int32 sd_id, int32 sds_ind)
 
     /* Verify that data is correct comparing against the written data */
     {
-    int ii;
-    int32* out;
-    out = &outdata[0];
+        int num;
+        int32* out = outdata;
 
-    for (ii = 0; ii < num_elems; ii++, ptr++, out++)
-    if (*ptr != *out)
-    {
-        fprintf(stderr, "Data read (%d) is different than written (%d) for SDS #%d, name = %s\n", *out, *ptr, sds_ind, name);
+        for (num = 0; num < num_elems; num++, ptr++, out++)
+        {
+            if (*ptr != *out)
+            {
+                fprintf(stderr, "Data read (%d) is different than written (%d) for SDS #%d, name = %s\n", *out, *ptr, sds_ind, name);
+            }
+        }
     }
-    }
+
+    /* Release resource */
+    HDfree(outdata);
 
     /* Terminate access to the data set, SD interface, and file. */
     status = SDendaccess (sds_id);

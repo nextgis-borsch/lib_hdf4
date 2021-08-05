@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2.2 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.10)
 ###############################################################################################################
 # This script will build and run the examples from a folder
 # Execute from a command line:
@@ -37,7 +37,11 @@ set(ADD_BUILD_OPTIONS "${ADD_BUILD_OPTIONS} -DCTEST_CONFIGURATION_TYPE:STRING=${
 ##################################################################
 
 if(NOT DEFINED INSTALLDIR)
-  set(INSTALLDIR "@CMAKE_INSTALL_PREFIX@")
+  if(WIN32)
+    set(INSTALLDIR "C:/Program Files/HDF_Group/@HDF4_PACKAGE_NAME@/@HDF4_PACKAGE_VERSION@")
+  else()
+    set(INSTALLDIR "@CMAKE_INSTALL_PREFIX@")
+  endif()
 endif()
 
 if(NOT DEFINED CTEST_SOURCE_NAME)
@@ -59,9 +63,11 @@ set(ADD_BUILD_OPTIONS "${ADD_BUILD_OPTIONS} -DSITE:STRING=${CTEST_SITE} -DBUILDN
 
 #TAR_SOURCE - name of tarfile
 #if(NOT DEFINED TAR_SOURCE)
-#  set(CTEST_USE_TAR_SOURCE "HDF4Examples-0.2.4-Source")
+#  set(CTEST_USE_TAR_SOURCE "HDF4Examples-0.3.9-Source")
 #endif()
 
+###############################################################################################################
+#     Adjust the following SET Commands as needed
 ###############################################################################################################
 if(WIN32)
   set(SITE_OS_NAME "Windows")

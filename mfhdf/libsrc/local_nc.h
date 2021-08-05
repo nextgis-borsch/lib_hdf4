@@ -31,7 +31,7 @@
 #endif
 
 /* Do we have system XDR files */
-#ifndef  NO_SYS_XDR_INC
+#ifndef  H4_NO_SYS_XDR_INC
 
 #ifdef __CYGWIN__
 #ifndef __u_char_defined
@@ -54,17 +54,25 @@ typedef    unsigned long    u_long;
 
 #include    <rpc/types.h>
 #include    <rpc/xdr.h>
-#else    /* NO_SYS_XDR_INC */
-#include      <types.h>  /* <types.h */
-#include      <xdr.h>    /* <xdr.h> */
-#endif /* NO_SYSTEM_XDR_INCLUDES */
+#else    /* H4_NO_SYS_XDR_INC */
+#include      "types.h"  /* <types.h */
+#include      "xdr.h"    /* <xdr.h> */
+#endif /* H4_NO_SYS_XDR_INC */
 
-#include "H4api_adpt.h"
 #ifdef H4_HAVE_NETCDF
 #include    "netcdf.h" /* needed for defs of nc_type, ncvoid, ... */
 #else
 #include "hdf4_netcdf.h"
 #endif
+
+/* Constants for sizes of NC types */
+#define NC_BYTE_SIZE        1
+#define NC_CHAR_SIZE        1
+#define NC_SHORT_SIZE       2
+#define NC_LONG_SIZE        4
+#define NC_FLOAT_SIZE       4
+#define NC_DOUBLE_SIZE      8
+#define NC_UNSPECIFIED_SIZE 0
 
 /* ptr argument type in internal functions */
 #define Void    char

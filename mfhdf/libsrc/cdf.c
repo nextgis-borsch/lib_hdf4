@@ -14,10 +14,11 @@
  * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*	$Id$ */
+/*  $Id$ */
 
-#include	"local_nc.h"
-#include	"alloc.h"
+#include    "local_nc.h"
+#include    "alloc.h"
+#include    "herr.h"
 
 #ifdef HDF
 #include    "hfile.h"
@@ -45,10 +46,10 @@ static int NC_free_xcdf(NC *);
 /* Debugging: define for each function you want debugging printfs */
 /* #define HDF_READ_VARS
 #define HDF_READ_ATTRS
-#define HDF_NUM_ATTRS 
-#define HDF_XDR_CDF 
-#define HDF_VG_CLOBBER 
-#define HDF_CDF_CLOBBER 
+#define HDF_NUM_ATTRS
+#define HDF_XDR_CDF
+#define HDF_VG_CLOBBER
+#define HDF_CDF_CLOBBER
 #define HDF_CLOSE */
 
 /*
@@ -66,20 +67,11 @@ NC *handle ;
     if(handle != NULL)
       {
           if (NC_free_array(handle->dims) == FAIL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+              HGOTO_FAIL(FAIL);
           if (NC_free_array(handle->attrs) == FAIL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+              HGOTO_FAIL(FAIL);
           if (NC_free_array(handle->vars) ==FAIL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+              HGOTO_FAIL(FAIL);
       }
 
 done:
@@ -104,35 +96,27 @@ NC *handle ;
 
       if(handle != NULL)
         {
-            if (NC_free_xcdf(handle) == FAIL) 
-              {
-                  ret_value = FAIL;
-                  goto done;
-              }
-            
+            if (NC_free_xcdf(handle) == FAIL)
+                HGOTO_FAIL(FAIL);
+
             /* destroy xdr struct */
             xdr_destroy(handle->xdrs);
             Free(handle->xdrs);
+            handle->xdrs = NULL;
 
 #ifdef HDF
-            if(handle->file_type == HDF_FILE) 
+            if(handle->file_type == HDF_FILE)
               {
                 if (Vend(handle->hdf_file) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                    HGOTO_FAIL(FAIL);
 
                 if (Hclose(handle->hdf_file) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
-
+                    HGOTO_FAIL(FAIL);
               }
 #endif /* HDF */
 
             Free(handle);
+            handle = NULL;
         }
 
 done:
@@ -146,7 +130,7 @@ done:
 }
 
 
-#ifdef HDF 
+#ifdef HDF
 
 /* --------------------------- hdf_get_magicnum ---------------------------- */
 /*
@@ -165,22 +149,22 @@ const char *filename;
     uint8     *pbuf = NULL;
     int32      magic_num;
     int32      ret_value = 0;
-  
+
     fp = (hdf_file_t)HI_OPEN(filename, DFACC_READ);
-    if (OPENERR(fp)) 
+    if (OPENERR(fp))
     {
         HGOTO_ERROR(DFE_BADNAME, FAIL);
-    } 
+    }
 
     /* Make sure it is at the beginning of the file */
-    if(HI_SEEK(fp, MAGICOFFSET) == FAIL) 
+    if(HI_SEEK(fp, MAGICOFFSET) == FAIL)
     {
         HGOTO_ERROR(DFE_SEEKERROR, FAIL);
     }
-        
+
     /* Read the first 4 bytes in the file, where the format version number
        is stored. */
-    if(HI_READ(fp, buf, MAGICLEN) == FAIL) 
+    if(HI_READ(fp, buf, MAGICLEN) == FAIL)
     {
         HI_CLOSE(fp);
         HGOTO_ERROR(DFE_READERROR, FAIL);
@@ -188,15 +172,15 @@ const char *filename;
 
     /* Obtain the file format version number then close the file*/
     pbuf = &buf[0];
-    INT32DECODE(pbuf, magic_num); 
+    INT32DECODE(pbuf, magic_num);
     HI_CLOSE(fp);
 
     /* If magic_num is a valid file format version number, then return it */
     if (magic_num == HDFXMAGIC || magic_num == CDFMAGIC ||
-	magic_num == NCMAGIC  || magic_num == NCMAGIC64)
-	ret_value = magic_num;
+        magic_num == NCMAGIC  || magic_num == NCMAGIC64)
+        ret_value = magic_num;
     else
-	HGOTO_ERROR(DFE_INVFILE, FAIL);
+        HGOTO_ERROR(DFE_INVFILE, FAIL);
 done:
     if (ret_value == FALSE)
       { /* Failure cleanup */
@@ -216,15 +200,15 @@ const char *filename;
     CONSTR(FUNC, "HDiscdf");    /* for HGOTO_ERROR */
     int32 magic_num = 0;
     intn  ret_value = FALSE;
-  
+
     /* Use internal function to open the file and get a magic number if the
        file has one */
     magic_num = hdf_get_magicnum(filename);
 
-    /* A CDF file would have CDFMAGIC at the beginning */ 
-    if (magic_num == CDFMAGIC) 
+    /* A CDF file would have CDFMAGIC at the beginning */
+    if (magic_num == CDFMAGIC)
         ret_value = TRUE;
-    else 
+    else
         ret_value = FALSE;
 
 done:
@@ -246,15 +230,15 @@ const char *filename;
     CONSTR(FUNC, "HDisnetcdf");    /* for HGOTO_ERROR */
     int32 magic_num = 0;
     intn  ret_value = FALSE;
-  
+
     /* Use internal function to open the file and get a magic number if the
        file has one */
     magic_num = hdf_get_magicnum(filename);
 
-    /* A classic netCDF file would have NCMAGIC at the beginning */ 
-    if (magic_num == NCMAGIC) 
+    /* A classic netCDF file would have NCMAGIC at the beginning */
+    if (magic_num == NCMAGIC)
         ret_value = TRUE;
-    else 
+    else
         ret_value = FALSE;
 
 done:
@@ -281,10 +265,10 @@ const char *filename;
        file has one */
     magic_num = hdf_get_magicnum(filename);
 
-    /* A 64-bit netCDF file would have NCMAGIC64 at the beginning */ 
-    if (magic_num == NCMAGIC64) 
+    /* A 64-bit netCDF file would have NCMAGIC64 at the beginning */
+    if (magic_num == NCMAGIC64)
         ret_value = TRUE;
-    else 
+    else
         ret_value = FALSE;
 
 done:
@@ -311,39 +295,30 @@ int mode ;
 #ifdef HDF
     int32 hdf_mode =  DFACC_RDWR; /* default */
 #endif
-	NC   *cdf = NULL;
+    NC   *cdf = NULL;
     static const char *FUNC = "NC_new_cdf";
     NC   *ret_value = NULL;
 
     /* allocate an NC struct */
-	cdf = (NC *)HDcalloc(1,sizeof(NC)) ;
-	if( cdf == NULL )
+    cdf = (NC *)HDcalloc(1,sizeof(NC)) ;
+    if( cdf == NULL )
       {
           nc_serror("NC_new_cdf") ;
-          ret_value = NULL;
-          goto done;
+          HGOTO_FAIL(NULL);
       }
 
-	cdf->flags = mode ;
+    cdf->flags = mode ;
 
-	cdf->xdrs = (XDR *)HDmalloc(sizeof(XDR)) ;
-	if( cdf->xdrs == NULL)
-      {
-          nc_serror("NC_new_cdf: xdrs") ;
-          ret_value = NULL;
-          goto done;
-      } /* else */
-	
 #ifdef HDF
     /*
      * See what type of file we are looking at.
      * If we are creating a new file it will be an HDF file
      */
-    if(mode & NC_CREAT) 
+    if(mode & NC_CREAT)
       {
           cdf->file_type = HDF_FILE;
-      } 
-    else 
+      }
+    else
       {
           if(Hishdf(name))
               cdf->file_type = HDF_FILE;
@@ -352,31 +327,33 @@ int mode ;
           else if(HDisnetcdf(name))
               cdf->file_type = netCDF_FILE;
           else
-            {
-                ret_value = NULL;
-                goto done;
-            }
-            
+                HGOTO_FAIL(NULL);
+
 #ifdef DEBUG
           if(cdf->file_type == CDF_FILE)
               printf("Yow!  found a CDF file\n");
 #endif
       }
 
+    /* Delay allocating xdr struct until it is needed */
+    cdf->xdrs = (XDR *)HDmalloc(sizeof(XDR)) ;
+    if( cdf->xdrs == NULL)
+      {
+          nc_serror("NC_new_cdf: xdrs") ;
+          HGOTO_FAIL(NULL);
+      } /* else */
+
     /*
      * Set up the XDR functions that some of the netCDF old code uses
      */
-    switch(cdf->file_type) 
+    switch(cdf->file_type)
       {
       case HDF_FILE:
           hdf_xdrfile_create(cdf->xdrs, mode); /* return type is 'void' */
           break;
       case netCDF_FILE:
-          if( NCxdrfile_create( cdf->xdrs, name, mode ) < 0) 
-            {
-                ret_value = NULL;
-                goto done;
-            } 
+          if( NCxdrfile_create( cdf->xdrs, name, mode ) < 0)
+                HGOTO_FAIL(NULL);
           break;
       case CDF_FILE:
           /* CDF_xdrfile_create(); */
@@ -384,28 +361,25 @@ int mode ;
           hdf_xdrfile_create(cdf->xdrs, mode);
           break;
       }
-        
+
 #else /* !HDF */
-    if( NCxdrfile_create( cdf->xdrs, name, mode ) < 0) 
-      {
-          ret_value = NULL;
-          goto done;
-      } 
+    if( NCxdrfile_create( cdf->xdrs, name, mode ) < 0)
+          HGOTO_FAIL(NULL);
 #endif /* !HDF */
 
-	cdf->dims = NULL ;
-	cdf->attrs = NULL ;
-	cdf->vars = NULL ;
-	cdf->begin_rec = 0 ;
-	cdf->recsize = 0 ;
-	cdf->numrecs = 0 ;
-	cdf->redefid = -1 ;
+    cdf->dims = NULL ;
+    cdf->attrs = NULL ;
+    cdf->vars = NULL ;
+    cdf->begin_rec = 0 ;
+    cdf->recsize = 0 ;
+    cdf->numrecs = 0 ;
+    cdf->redefid = -1 ;
 
-#ifdef HDF 
-    /* 
-     * determine the HDF access mode 
+#ifdef HDF
+    /*
+     * determine the HDF access mode
      */
-    switch(mode) 
+    switch(mode)
       {
       case NC_CLOBBER   :
           hdf_mode = DFACC_CLOBBER; break;
@@ -419,58 +393,53 @@ int mode ;
       default:
           hdf_mode = DFACC_RDWR;
       }
-        
+
     /*
      * Do file type specific setup
      */
-    switch(cdf->file_type) 
+    switch(cdf->file_type)
       {
       case HDF_FILE:  /* HDF stuff */
 
           /* see if the file exists */
-          if(mode == NC_NOCLOBBER) 
+          if(mode == NC_NOCLOBBER)
             {
                 if((int) Hishdf(name))
                   { /* Need to free allocated structures.
                        This will happen on failure cleanup. */
-                      xdr_destroy(cdf->xdrs) ; /* destroy xdr struct first */
-                      ret_value = NULL;
-                      goto done;
+                      HGOTO_FAIL(NULL);
                   }
                 hdf_mode = DFACC_RDWR;
             }
 
           /* open the file */
           cdf->hdf_file = (int32) Hopen(name, hdf_mode, 200);
-          if(cdf->hdf_file == FAIL) 
-            {
-                ret_value = NULL;
-                goto done;
-            }
+          if(cdf->hdf_file == FAIL)
+                HGOTO_FAIL(NULL);
 
           /* start Vxx access */
           if (Vstart(cdf->hdf_file) == FAIL)
-            {
-                ret_value = NULL;
-                goto done;
-            }
+              HGOTO_FAIL(NULL);
 
           cdf->hdf_mode = hdf_mode;
           cdf->vgid = 0; /* invalid ref */
 
-	  /* copy filename only up to its length instead of FILENAME_MAX as
-	     used to be */
+          /* copy filename only up to its length instead of FILENAME_MAX as
+             used to be */
           HDstrncpy(cdf->path, name, strlen(name)+1);
+          cdf->path[strlen(name)] = '\0';
           break;
       case netCDF_FILE:
           /* Nothing */
+          HDstrncpy(cdf->path, name, strlen(name)+1);
+          cdf->path[strlen(name)] = '\0';
           break;
       case CDF_FILE:
 #ifdef DEBUG
           fprintf(stderr, "About to do CDF file set up\n");
 #endif
           cdf->cdf_fp = (hdf_file_t) HI_OPEN(name, hdf_mode);
-          if (OPENERR(cdf->cdf_fp)) 
+          if (OPENERR(cdf->cdf_fp))
               HRETURN_ERROR(DFE_DENIED,NULL);
           break;
       }
@@ -486,15 +455,11 @@ int mode ;
                    NC_free_xcdf(). */
                 NC_free_cdf(cdf); /* free memory, close structues,files etc*/
                 cdf = NULL;
-                ret_value = NULL ;
-                goto done;
+                HGOTO_FAIL(NULL);
             }
 
           if(NC_computeshapes(cdf) == -1)
-            {
-                ret_value = NULL;
-                goto done;
-            }
+                HGOTO_FAIL(NULL);
       }
 
     ret_value = cdf ;
@@ -507,16 +472,19 @@ done:
                  These routines only free up allocted memory. */
                 NC_free_xcdf(cdf); /* no point in catching error here */
                 if (cdf->xdrs != NULL)
+                {
+                    xdr_destroy(cdf->xdrs);
                     Free(cdf->xdrs);
+                }
                 Free(cdf) ;
             }
       }
      /* Normal cleanup */
     return ret_value;
-}
+}   /* NC_new_cdf */
 
 
-/* 
+/*
  * Duplicate a description structure.
  * Can only be called for 'old' extant on disk, eg, old in DATA mode.
  *
@@ -528,57 +496,46 @@ const char *name ;
 int mode ;
 NC *old ;
 {
-	NC *cdf = NULL;
+    NC *cdf = NULL;
     NC *ret_value = NULL;
 
     cdf = (NC *)HDmalloc(sizeof(NC)) ;
-	if( cdf == NULL )
+    if( cdf == NULL )
       {
           nc_serror("NC_dup_cdf") ;
-          ret_value = NULL;
-          goto done;
+          HGOTO_FAIL(NULL);
       }
 
-	cdf->flags = old->flags | NC_INDEF ;
+    cdf->flags = old->flags | NC_INDEF ;
 
-	cdf->xdrs = (XDR *)HDmalloc(sizeof(XDR)) ;
-	if( cdf->xdrs == NULL)
+    cdf->xdrs = (XDR *)HDmalloc(sizeof(XDR)) ;
+    if( cdf->xdrs == NULL)
       {
           nc_serror("NC_dup_cdf: xdrs") ;
-          ret_value = NULL;
-          goto done;
-      } 
+          HGOTO_FAIL(NULL);
+      }
 
-	cdf->dims = NULL ;
-	cdf->attrs = NULL ;
-	cdf->vars = NULL ;
-	cdf->begin_rec = 0 ;
-	cdf->recsize = 0 ;
-	cdf->numrecs = 0 ;
+    cdf->dims = NULL ;
+    cdf->attrs = NULL ;
+    cdf->vars = NULL ;
+    cdf->begin_rec = 0 ;
+    cdf->recsize = 0 ;
+    cdf->numrecs = 0 ;
 
 #ifdef HDF
     cdf->file_type = old->file_type;
 #endif
 
-	if(NCxdrfile_create( cdf->xdrs, name, mode) < 0)
-      {
-          ret_value = NULL ;
-          goto done;
-      } 
+    if(NCxdrfile_create( cdf->xdrs, name, mode) < 0)
+          HGOTO_FAIL(NULL);
 
-	old->xdrs->x_op = XDR_DECODE ;
-	if(!xdr_cdf(old->xdrs, &cdf) )
-      {
-          ret_value = NULL;
-          goto done;
-      }
-	if( NC_computeshapes(cdf) == -1)
-      {
-          ret_value = NULL;
-          goto done;
-      }
+    old->xdrs->x_op = XDR_DECODE ;
+    if(!xdr_cdf(old->xdrs, &cdf) )
+          HGOTO_FAIL(NULL);
+    if( NC_computeshapes(cdf) == -1)
+          HGOTO_FAIL(NULL);
 
-	ret_value = cdf;
+    ret_value = cdf;
 
 done:
     if (ret_value == NULL)
@@ -606,19 +563,19 @@ int *nvarsp ;
 int *nattrsp ;
 int *xtendimp ;
 {
-	NC *handle ;
+    NC *handle ;
 
-	cdf_routine_name = "ncinquire" ;
+    cdf_routine_name = "ncinquire" ;
 
-	handle = NC_check_id(cdfid) ;
-	if(handle == NULL)
-		return(-1) ;
-	
-	if(nvarsp != NULL)
-		*nvarsp = (handle->vars != NULL) ? handle->vars->count : 0 ;
-	if(nattrsp != NULL)
-		*nattrsp = (handle->attrs != NULL) ? handle->attrs->count : 0 ;
-	if(handle->dims != NULL)
+    handle = NC_check_id(cdfid) ;
+    if(handle == NULL)
+        return(-1) ;
+
+    if(nvarsp != NULL)
+        *nvarsp = (handle->vars != NULL) ? handle->vars->count : 0 ;
+    if(nattrsp != NULL)
+        *nattrsp = (handle->attrs != NULL) ? handle->attrs->count : 0 ;
+    if(handle->dims != NULL)
       {
           NC_dim **dp ;
           unsigned ii ;
@@ -644,7 +601,7 @@ int *xtendimp ;
               *xtendimp = -1 ;
       }
 
-	return(cdfid) ;
+    return(cdfid) ;
 }
 
 /*
@@ -652,13 +609,13 @@ int *xtendimp ;
  */
 bool_t
 xdr_cdf(xdrs, handlep)
-	XDR *xdrs;
-	NC **handlep;
+    XDR *xdrs;
+    NC **handlep;
 {
     bool_t ret_value = TRUE;
 
-#ifdef HDF    
-    switch((*handlep)->file_type) 
+#ifdef HDF
+    switch((*handlep)->file_type)
       {
       case HDF_FILE:
           if (hdf_xdr_cdf(xdrs, handlep) == FAIL)
@@ -684,19 +641,19 @@ xdr_cdf(xdrs, handlep)
 
 static bool_t
 NC_xdr_cdf(xdrs, handlep)
-	XDR *xdrs;
-	NC **handlep;
+    XDR *xdrs;
+    NC **handlep;
 {
 
-	u_long	magic;
+    u_long    magic;
 
-	if( xdrs->x_op == XDR_FREE)
+    if( xdrs->x_op == XDR_FREE)
       {
           NC_free_xcdf(*handlep) ;
           return(TRUE) ;
       }
-	
-	if( xdr_getpos(xdrs) != 0)
+
+    if( xdr_getpos(xdrs) != 0)
       {
           if( !xdr_setpos(xdrs, 0) )
             {
@@ -705,8 +662,8 @@ NC_xdr_cdf(xdrs, handlep)
             }
       }
 
-	/* magic number */
-	if( !xdr_u_long(xdrs, &magic) )
+    /* magic number */
+    if( !xdr_u_long(xdrs, &magic) )
       {
           if( xdrs->x_op == XDR_DECODE)
             {
@@ -721,7 +678,7 @@ NC_xdr_cdf(xdrs, handlep)
           return(FALSE) ;
       }
 
-	if( xdrs->x_op == XDR_DECODE && magic != NCMAGIC )
+    if( xdrs->x_op == XDR_DECODE && magic != NCMAGIC )
       {
           if(magic == NCLINKMAGIC)
             {
@@ -732,50 +689,50 @@ NC_xdr_cdf(xdrs, handlep)
           return(FALSE) ;
       }
 
-	if( !xdr_numrecs(xdrs, *handlep))
+    if( !xdr_numrecs(xdrs, *handlep))
       {
           NCadvise(NC_EXDR, "xdr_numrecs") ;
           return(FALSE) ;
       }
-	if( !xdr_NC_array(xdrs, &((*handlep)->dims)))
+    if( !xdr_NC_array(xdrs, &((*handlep)->dims)))
       {
           NCadvise(NC_EXDR, "xdr_cdf:dims") ;
           return(FALSE) ;
       }
-	if( !xdr_NC_array(xdrs, &((*handlep)->attrs)))
+    if( !xdr_NC_array(xdrs, &((*handlep)->attrs)))
       {
           NCadvise(NC_EXDR, "xdr_cdf:attrs") ;
           return(FALSE) ;
       }
-	if( !xdr_NC_array(xdrs, &((*handlep)->vars)))
+    if( !xdr_NC_array(xdrs, &((*handlep)->vars)))
       {
           NCadvise(NC_EXDR, "xdr_cdf:vars") ;
           return(FALSE) ;
-      }	
-	return(TRUE) ;
+      }
+    return(TRUE) ;
 }
 
 #ifdef HDF
 /*****************************************************************************
-* 
-*			NCSA HDF / netCDF Project
-*			        May, 1993
 *
-* NCSA HDF / netCDF source code and documentation are in the public domain.  
+*            NCSA HDF / netCDF Project
+*                    May, 1993
+*
+* NCSA HDF / netCDF source code and documentation are in the public domain.
 * Specifically, we give to the public domain all rights for future
 * licensing of the source code, all resale rights, and all publishing rights.
-* 
+*
 * We ask, but do not require, that the following message be included in all
 * derived works:
-* 
+*
 * Portions developed at the National Center for Supercomputing Applications at
-* the University of Illinois at Urbana-Champaign.  Funding for this project 
+* the University of Illinois at Urbana-Champaign.  Funding for this project
 * has come primarily from the National Science Foundation.
-* 
+*
 * THE UNIVERSITY OF ILLINOIS GIVES NO WARRANTY, EXPRESSED OR IMPLIED, FOR THE
 * SOFTWARE AND/OR DOCUMENTATION PROVIDED, INCLUDING, WITHOUT LIMITATION,
 * WARRANTY OF MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE
-* 
+*
 ******************************************************************************
 *
 * Please report all bugs / comments to help@hdfgroup.org
@@ -791,7 +748,7 @@ hdf_map_type(type)
 nc_type type;
 {
 
-    switch(type) 
+    switch(type)
       {
       case NC_UNSPECIFIED : /* be like netCDF */
       case NC_CHAR   :
@@ -815,14 +772,14 @@ nc_type type;
 
 /* ----------------------------------------------------------------
 **  UnMap a data type.  I.e. go from an HDF type to an NC_<type>
-**  The HDF type may be in DFNT_NATIVE mode, so only look at the 
+**  The HDF type may be in DFNT_NATIVE mode, so only look at the
 **    bottom bits
 */
 nc_type
 hdf_unmap_type(type)
 int type;
 {
-    switch(type & 0xff) 
+    switch(type & 0xff)
       {
       case DFNT_CHAR        :
       case DFNT_UCHAR       :
@@ -837,11 +794,11 @@ int type;
       case DFNT_UINT32      :
           return NC_LONG;
       case DFNT_FLOAT32     :
-          return NC_FLOAT; 
+          return NC_FLOAT;
       case DFNT_FLOAT64     :
           return NC_DOUBLE;
       default:
-          return (nc_type)FAIL;	/* need a better legal nc_type value */
+          return (nc_type)FAIL;    /* need a better legal nc_type value */
       }
 
 } /* hdf_unmap_type */
@@ -857,11 +814,11 @@ int i;
   NC_array  *tmp = NULL;
   NC_dim   **d = NULL;
   Void      *dims = NULL;
-  
+
   tmp  = handle->dims;
   dims = handle->dims->values;
   dims += i * tmp->szof;
-  
+
   d = (NC_dim **) dims;
   return (*d)->vgid; /* return ref of vgroup */
 } /* get_hdf_ref */
@@ -881,14 +838,14 @@ int i;
 ** NOTE2: Someone should update the comments here. They no longer
 **        seem valid -GV 9/19/97
 */
-int 
+int
 hdf_create_dim_vdata(xdrs, handle, dim)
 XDR *xdrs;
 NC *handle;
 NC_dim *dim;
 {
 #ifdef LATER
-    CONSTR(FUNC,"hdf_create_dim_vdata"); 
+    CONSTR(FUNC,"hdf_create_dim_vdata");
 #endif /* LATER */
   int   found = FALSE;
   int   ref;
@@ -903,11 +860,11 @@ NC_dim *dim;
 
 #if 0
   /* look for variable with the given name */
-  if(handle->vars) 
+  if(handle->vars)
     {
         dp = (NC_var **) handle->vars->values;
         for(ii = 0; ii < handle->vars->count; ii++, dp++)
-            if(HDstrcmp(dim->name->values, (*dp)->name->values) == 0) 
+            if(HDstrcmp(dim->name->values, (*dp)->name->values) == 0)
               {
                   /* found it */
                   found = TRUE;
@@ -916,34 +873,33 @@ NC_dim *dim;
     }
 #endif
 
-  if(found) 
+  if(found)
     {
         /* load in the variable's values */
 #if DEBUG
         fprintf(stderr, "Found real values for dimension %s\n", dim->name->values);
 #endif
-    } 
-  else 
+    }
+  else
     {
         dsize = 1;
         val = (dim->size != NC_UNLIMITED) ? dim->size : (int32)handle->numrecs;
         ref = VHstoredata(handle->hdf_file, "Values", (const uint8 *)&val, dsize,
                           DFNT_INT32, dim->name->values, DIM_VALS01);
-      
-        if(ref == FAIL) 
+
+        if(ref == FAIL)
           {
 #ifdef DEBUG
               fprintf(stderr, "FAILed creating Vdata %s\n", dim->name->values);
 #endif
-              ret_value = FAIL;
-              goto done;
+              HGOTO_FAIL(FAIL);
           }
     }
-  
+
 #if DEBUG
   fprintf(stderr, "Returning vdata pointer %d\n", ref);
 #endif
-  
+
   ret_value = ref;
 
 done:
@@ -966,9 +922,9 @@ done:
 **
 */
 int
-hdf_create_compat_dim_vdata(XDR *xdrs, 
-                            NC *handle, 
-                            NC_dim *dim, 
+hdf_create_compat_dim_vdata(XDR *xdrs,
+                            NC *handle,
+                            NC_dim *dim,
                             int32 dimval_ver)
 {
     static const char  *FUNC = "hdf_create_compat_dim_vdata";
@@ -985,17 +941,11 @@ hdf_create_compat_dim_vdata(XDR *xdrs,
 #endif
 
     if (dimval_ver != DIMVAL_VERSION00)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+        HGOTO_FAIL(FAIL);
 
     dsize = (dim->size == NC_UNLIMITED)? 1 : dim->size;
     if (dsize < 0)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+        HGOTO_FAIL(FAIL);
     /* create a fake one */
 #ifdef DEBUG
     fprintf(stderr, "Creating fake dim  ::::%s::: (%d)\n",
@@ -1003,17 +953,13 @@ hdf_create_compat_dim_vdata(XDR *xdrs,
 #endif
     /* allocate space */
     val = (int32 *) HDmalloc(dsize * sizeof(int32));
-    if(!val) 
-      {
-          HERROR(DFE_NOSPACE);
-          ret_value = FAIL;
-          goto done;
-      }
+    if(!val)
+        HGOTO_ERROR(DFE_NOSPACE, FAIL);
 
     /* Shouldn't a check for netCDF file be here before using handle->numrecs?
        If the file is an HDF file, vp->numrecs should be used, right?
        -BMR (2013-6/24) */
-    if (dim->size == NC_UNLIMITED)  
+    if (dim->size == NC_UNLIMITED)
       {
           *val = handle->numrecs;
       }
@@ -1024,14 +970,13 @@ hdf_create_compat_dim_vdata(XDR *xdrs,
 
     ref = VHstoredata(handle->hdf_file, "Values", (const uint8 *)val,
                       dsize, DFNT_INT32, dim->name->values, DIM_VALS);
-    if(ref == FAIL) 
-      {
+    if(ref == FAIL)
+    {
 #ifdef DEBUG
-          fprintf(stderr, "FAILed creating Vdata %s\n", dim->name->values);
+        fprintf(stderr, "FAILed creating Vdata %s\n", dim->name->values);
 #endif
-          ret_value =  FAIL;
-          goto done;
-      }
+        HGOTO_FAIL(FAIL);
+    }
 
 
 #ifdef DEBUG
@@ -1078,7 +1023,7 @@ NC_attr **attr;
     fprintf(stderr, "The attribute is called %s\n", name);
     fprintf(stderr, "Type = %d (%d)  size  %d\n", type, (*attr)->HDFtype, size);
     fprintf(stderr, "Value: ");
-    switch(type) 
+    switch(type)
       {
       case DFNT_CHAR :fprintf(stderr, " (char) %s\n", (char *) values); break;
       case DFNT_UINT8 :fprintf(stderr, " (uint8) %d\n", (char *) values); break;
@@ -1093,18 +1038,18 @@ NC_attr **attr;
       }
 #endif
 
-    if(type == DFNT_CHAR) 
+    if(type == DFNT_CHAR)
       {
           order = size;
           size = 1;
-      } 
-    else 
-      { 
+      }
+    else
+      {
           order = 1;
       }
-      
-    ret_value = VHstoredatam(handle->hdf_file, ATTR_FIELD_NAME, 
-                          (unsigned char *) values, size, 
+
+    ret_value = VHstoredatam(handle->hdf_file, ATTR_FIELD_NAME,
+                          (unsigned char *) values, size,
                           type, name, _HDF_ATTRIBUTE, order);
 
 #if DEBUG
@@ -1148,39 +1093,33 @@ hdf_write_dim(XDR *xdrs, NC *handle, NC_dim **dim, int32 cnt)
     count = 0;
     tags[count] = DFTAG_VH;
     refs[count] = hdf_create_dim_vdata(xdrs, handle, (*dim));
-    if(refs[count] == FAIL) 
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+    if(refs[count] == FAIL)
+        HGOTO_FAIL(FAIL);
     count++;
 
     /* do we need to create compatible dimension? */
-    if ((*dim)->dim00_compat) 
+    if ((*dim)->dim00_compat)
       {
           tags[count] = DFTAG_VH;
           refs[count] = hdf_create_compat_dim_vdata(xdrs, handle, (*dim), DIMVAL_VERSION00);
-          if(refs[count] == FAIL) 
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+          if(refs[count] == FAIL)
+              HGOTO_FAIL(FAIL);
           count++;
-      } 
+      }
 
     /* check if UNLIMITED dimension */
-    if((*dim)->size == NC_UNLIMITED) 
+    if((*dim)->size == NC_UNLIMITED)
         class = _HDF_UDIMENSION;
     else
         class = _HDF_DIMENSION;
-  
+
     if(HDstrncmp((*dim)->name->values, "fakeDim", 7) == 0)
         sprintf(name, "fakeDim%d", (int)cnt);
     else
         HDstrcpy(name, (*dim)->name->values);
 
     /* write out the dimension group? */
-    (*dim)->vgid = VHmakegroup(handle->hdf_file, tags, refs, count, 
+    (*dim)->vgid = VHmakegroup(handle->hdf_file, tags, refs, count,
                                name, class);
 
     ret_value = (*dim)->vgid; /* ref of vgroup of dimension */
@@ -1219,7 +1158,7 @@ NC_var **var;
     int32     GroupID, val, vs_id;
     uint8     *bufp = NULL;
 #ifdef LATER
-    CONSTR(FUNC,"hdf_write_var"); 
+    CONSTR(FUNC,"hdf_write_var");
 #endif /* LATER */
     int32      ret_value = SUCCEED;
     register unsigned  i, count;
@@ -1234,7 +1173,7 @@ NC_var **var;
     fprintf(stderr, "handle->hdf_file = %d\n", handle->hdf_file);
     fprintf(stderr, "The name is -- %s -- \n", (*var)->name->values);
 
-    if(assoc && assoc->count) 
+    if(assoc && assoc->count)
       {
           fprintf(stderr, "value of assoc %d\n", assoc);
           fprintf(stderr, " assoc->count %d\n", assoc->count);
@@ -1245,115 +1184,97 @@ NC_var **var;
     /*
      *  Get the dimension information
      */
-    for(i = 0; i < assoc->count; i++) 
+    for(i = 0; i < assoc->count; i++)
       {
           tags[count] = DIM_TAG;
           refs[count] = hdf_get_ref(handle, assoc->values[i]);
           count++;
       }
 
-    /* 
+    /*
      * Add info for the attributes
      */
-    if(attrs) 
+    if(attrs)
       {
           attribute = attrs->values;
-          for(i = 0; i < attrs->count; i++) 
+          for(i = 0; i < attrs->count; i++)
             {
                 tags[count] = ATTR_TAG;
                 refs[count] = hdf_write_attr(xdrs, handle, (NC_attr **)attribute);
                 if (refs[count] == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                    HGOTO_FAIL(FAIL);
                 attribute += attrs->szof;
                 count++;
             }
       }
-  
+
     /*
      *  Add info about the type of this variable
      */
     if ((*var)->var_type == IS_SDSVAR || (*var)->var_type == IS_CRDVAR)
       {
-	char fields[FIELDNAMELENMAX];
-	char vsclass[H4_MAX_NC_NAME];
+    char fields[FIELDNAMELENMAX];
+    char vsclass[H4_MAX_NC_NAME];
 
-	if ((*var)->var_type == IS_SDSVAR)
-	  {
-	    strncpy(fields, "SDS variable", 13);
-	    strncpy(vsclass, _HDF_SDSVAR, 7);
-	  }
-	else if ((*var)->var_type == IS_CRDVAR)
-	  {
-	    strncpy(fields, "Coordinate variable", 20);
-	    strncpy(vsclass, _HDF_CRDVAR, 9);
-	  }
+    if ((*var)->var_type == IS_SDSVAR)
+    {
+        strncpy(fields, "SDS variable", 13);
+        strncpy(vsclass, _HDF_SDSVAR, 7);
+    }
+    else if ((*var)->var_type == IS_CRDVAR)
+    {
+        strncpy(fields, "Coordinate variable", 20);
+        strncpy(vsclass, _HDF_CRDVAR, 9);
+    }
 
-	if ((vs_id = VSattach(handle->hdf_file, -1, "w")) == FAIL)
-	  {
-	    ret_value = FAIL;
-	    goto done;
-	  }
-        if(VSsetclass(vs_id, vsclass)==FAIL)
-          {
-            ret_value = FAIL;
-            goto done;
-          }
+    if ((vs_id = VSattach(handle->hdf_file, -1, "w")) == FAIL)
+        HGOTO_FAIL(FAIL);
+    if(VSsetclass(vs_id, vsclass)==FAIL)
+        HGOTO_FAIL(FAIL);
 
     if ( VSfdefine(vs_id, fields, DFNT_FLOAT32, 1) == FAIL)
-          {
-            ret_value = FAIL;
-            goto done;
-          }
+        HGOTO_FAIL(FAIL);
     if ( VSsetfields(vs_id, fields) == FAIL)
-          {
-            ret_value = FAIL;
-            goto done;
-          }
+        HGOTO_FAIL(FAIL);
 
-	ref = VSQueryref(vs_id);
+    ref = VSQueryref(vs_id);
 
-	if(VSdetach(vs_id)==FAIL)
-	  {
-	    ret_value = FAIL;
-	    goto done;
-	  }
+    if(VSdetach(vs_id)==FAIL)
+        HGOTO_FAIL(FAIL);
 
-	tags[count] = DFTAG_VH;
-	refs[count] = ref;
-	count++;
+    tags[count] = DFTAG_VH;
+    refs[count] = ref;
+    count++;
       }
 
     /*
      * If we already have data written out include that too
      *   (this might happen after a redef() cuz we will leave
-     *   the data sitting on the disk but clear out all the 
+     *   the data sitting on the disk but clear out all the
      *   meta-data)
      */
-    if((*var)->data_ref) 
+    if((*var)->data_ref)
       {
           tags[count] = (int32) DFTAG_SD;
           refs[count] = (*var)->data_ref;
 #if DEBUG
           fprintf(stderr, " ---- Carrying forward data with ref %d ---- \n", (*var)->data_ref);
-#endif 
+#endif
           count++;
-      } 
-  
-  
+      }
+
+
     /*
-     * Write out a number type tag so that we can recover this 
+     * Write out a number type tag so that we can recover this
      *   variable's type later on
      *
-     * by default numbers are converted to IEEE otherwise we need to save the 
+     * by default numbers are converted to IEEE otherwise we need to save the
      *   machine type in the NT object
      */
 
     /* somone unwrap this statement....*/
-    outNT = ((*var)->HDFtype & DFNT_NATIVE)?  
-        DFKgetPNSC((*var)->HDFtype, DF_MT) : ((*var)->HDFtype & DFNT_LITEND)? 
+    outNT = ((*var)->HDFtype & DFNT_NATIVE)?
+        DFKgetPNSC((*var)->HDFtype, DF_MT) : ((*var)->HDFtype & DFNT_LITEND)?
         DFNTF_PC :  DFNTF_IEEE;
 
 #ifdef NOT_YET
@@ -1366,51 +1287,39 @@ NC_var **var;
     ntstring[2] = (uint8)((*var)->HDFsize * 8);    /* width (in bits) */
     ntstring[3] = outNT;                           /* class: IEEE or machine class */
     if(Hputelement(handle->hdf_file, DFTAG_NT, ref, ntstring, (int32) 4) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+        HGOTO_FAIL(FAIL);
     tags[count] = DFTAG_NT;
     refs[count] = ref;
     nt_ref = (uint16) ref;
     count++;
-  
+
 
 #ifdef WRITE_NDG
     /* prepare to start writing ndg   */
     if ((GroupID = DFdisetup(10)) < 0)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
-  
+        HGOTO_FAIL(FAIL);
+
     /* write SD record */
     if((*var)->data_ref)
       {
           if (DFdiput(GroupID, DFTAG_SD, (uint16) (*var)->data_ref) == FAIL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+              HGOTO_FAIL(FAIL);
       }
-  
+
     /* write NT tag/ref */
     if (DFdiput(GroupID, DFTAG_NT, (uint16) ref) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+          HGOTO_FAIL(FAIL);
 
     /* put rank & dimensions in buffer */
     bufp = tbuf;
     rank = assoc->count;
     UINT16ENCODE(bufp, rank);
-    for(i = 0; i < (int)rank; i++) 
+    for(i = 0; i < (int)rank; i++)
       {
           val = (int32) (*var)->shape[i];
 
           /* need to fake the size of the record dimension */
-          if(val == NC_UNLIMITED) 
+          if(val == NC_UNLIMITED)
             {
                 if(handle->file_type == HDF_FILE)
                     val = (*var)->numrecs;
@@ -1420,27 +1329,21 @@ NC_var **var;
 
           INT32ENCODE(bufp, val);
       }
-  
+
     /* "<=" used to put 1 data NT + rank scale NTs in buffer */
-    for (i = 0; i <= (int)rank; i++) 
+    for (i = 0; i <= (int)rank; i++)
       {  /* scale NTs written even if no scale!*/
           UINT16ENCODE(bufp, DFTAG_NT);
           UINT16ENCODE(bufp, nt_ref);
-      } 
-  
+      }
+
     /* write out SDD record */
     if(Hputelement(handle->hdf_file, DFTAG_SDD, ref, tbuf, (int32) (bufp-tbuf)) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
-  
+          HGOTO_FAIL(FAIL);
+
     /* write dimension record tag/ref */
     if (DFdiput(GroupID, DFTAG_SDD,(uint16) ref) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+          HGOTO_FAIL(FAIL);
 
     tags[count] = DFTAG_SDD;
     refs[count] = ref;
@@ -1448,18 +1351,12 @@ NC_var **var;
 
     /* Add a bogus tag so we know this NDG is really a variable */
     if (DFdiput(GroupID, BOGUS_TAG,(uint16) ref) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+          HGOTO_FAIL(FAIL);
 
     /* write out NDG */
-    if (DFdiwrite(handle->hdf_file, GroupID, DFTAG_NDG, (*var)->ndg_ref) < 0) 
-      {
-          ret_value = FAIL;
-          goto done;
-      }
-  
+    if (DFdiwrite(handle->hdf_file, GroupID, DFTAG_NDG, (*var)->ndg_ref) < 0)
+          HGOTO_FAIL(FAIL);
+
     tags[count] = DFTAG_NDG;
     refs[count] = (*var)->ndg_ref;
     count++;
@@ -1467,20 +1364,19 @@ NC_var **var;
 #endif /* WRITE_NDG */
 
     /* write the vgroup for the coordinate variable */
-    (*var)->vgid = VHmakegroup(handle->hdf_file, tags, refs, count, 
-				(*var)->name->values, _HDF_VARIABLE);
+    (*var)->vgid = VHmakegroup(handle->hdf_file, tags, refs, count, (*var)->name->values, _HDF_VARIABLE);
 
 
 #ifdef DEBUG
-    if((*var)->vgid == FAIL) 
+    if((*var)->vgid == FAIL)
       {
           fprintf(stderr, "Failed to write variable %s\n", (*var)->name->values);
           fprintf(stderr, "count = %d\n", count);
           for(i = 0; i < count; i++)
               fprintf(stderr, "i = %d   tag = %d ref = %d\n", i, tags[i], refs[i]);
-          
+
           HEprint(stdout, 0);
-      }  
+      }
 #endif
 
     ret_value =  (*var)->vgid; /* ref of vgroup of variable */
@@ -1492,7 +1388,7 @@ done:
       }
      /* Normal cleanup */
 
-    return ret_value;  
+    return ret_value;
 } /* hdf_write_var */
 
 
@@ -1529,19 +1425,16 @@ NC **handlep;
    /* Convert old scales into coordinate var values before writing
       out any header info */
     status = hdf_conv_scales(handlep);
-    if (status == FAIL) 
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+    if (status == FAIL)
+          HGOTO_FAIL(FAIL);
 
     /* count size of tag / ref arrays */
     sz = 0;
-    if((*handlep)->dims)  
+    if((*handlep)->dims)
         sz += (*handlep)->dims->count;
-    if((*handlep)->vars)  
+    if((*handlep)->vars)
         sz += (*handlep)->vars->count;
-    if((*handlep)->attrs) 
+    if((*handlep)->attrs)
         sz += (*handlep)->attrs->count;
 
 #if DEBUG
@@ -1551,44 +1444,42 @@ NC **handlep;
     /* allocate tag / ref arrays */
     tags = (int32 *) HDmalloc(sz * sizeof(int32) + 1);
     refs = (int32 *) HDmalloc(sz * sizeof(int32) + 1);
-    if(NULL == tags || NULL == refs) 
+    if(NULL == tags || NULL == refs)
       {
 #ifdef DEBUG
           fprintf(stderr, "Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
-    /* 
-    ** write out dimension arrays 
+    /*
+    ** write out dimension arrays
     */
     count = 0;
-    if((*handlep)->dims) 
+    if((*handlep)->dims)
       {
-          tmp = (*handlep)->dims; 
+          tmp = (*handlep)->dims;
           dims = (NC_dim **) (*handlep)->dims->values;
 
           tsizeptr = dim_size_array =(long *)HDmalloc(sizeof(long)*(size_t)tmp->count);
           thashptr = dim_hash_array =(uint32 *)HDmalloc(sizeof(uint32)*(size_t)tmp->count);
 
-          if(NULL == dim_size_array || NULL == dim_hash_array) 
+          if(NULL == dim_size_array || NULL == dim_hash_array)
             {
 #ifdef DEBUG
                 fprintf(stderr, "Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-                ret_value = FAIL;
-                goto done;
+                HGOTO_FAIL(FAIL);
             }
 
-          for(i = 0; i < tmp->count; i++,dims++) 
+          for(i = 0; i < tmp->count; i++,dims++)
             {
                 *tsizeptr++=(*dims)->size;
                 *thashptr++=(*dims)->name->hash;
             } /* end for */
 
           dims = (NC_dim **) (*handlep)->dims->values;
-          for(i = 0; i < tmp->count; i++) 
+          for(i = 0; i < tmp->count; i++)
             {
 
                 /* this is really ugly and should be handled another way */
@@ -1600,12 +1491,12 @@ NC **handlep;
                 tsizeptr = dim_size_array;
                 thashptr = dim_hash_array;
 
-                for(j = 0; j < i; j++) 
+                for(j = 0; j < i; j++)
                   {
                       /* this order on the test is faster -QAK */
-                      if( thash == *thashptr 
-                          && tsize == *tsizeptr 
-                          && NC_compare_string((*dims)->name,(*dims1)->name) == 0 ) 
+                      if( thash == *thashptr
+                          && tsize == *tsizeptr
+                          && NC_compare_string((*dims)->name,(*dims1)->name) == 0 )
                         {
                             done = TRUE;
                             break;
@@ -1615,37 +1506,31 @@ NC **handlep;
                       dims1++;
                   }
 
-                if(!done) 
+                if(!done)
                   {
                       tags[count] = (int32) DIM_TAG;
                       refs[count] = (int32) hdf_write_dim(xdrs, (*handlep), dims, count);
-                      if(refs[count] == FAIL) 
-                        {
-                            ret_value = FAIL;
-                            goto done;
-                        }
+                      if(refs[count] == FAIL)
+                          HGOTO_FAIL(FAIL);
                       count++;
                   }
                 dims++;
             }
       } /* end if handle->dims */
-  
-    /* 
-    ** write out variable info 
+
+    /*
+    ** write out variable info
     */
-    if((*handlep)->vars) 
+    if((*handlep)->vars)
       {
-          tmp = (*handlep)->vars; 
+          tmp = (*handlep)->vars;
           vars = (*handlep)->vars->values;
-          for(i = 0; i < tmp->count; i++) 
+          for(i = 0; i < tmp->count; i++)
             {
                 tags[count] = (int32) VAR_TAG;
                 refs[count] = (int32) hdf_write_var(xdrs, (*handlep), (NC_var **)vars);
-                if(refs[count] == FAIL) 
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                if(refs[count] == FAIL)
+                    HGOTO_FAIL(FAIL);
                 vars += tmp->szof;
                 count++;
             }
@@ -1654,19 +1539,16 @@ NC **handlep;
     /*
      * write global attribute information
      */
-    if((*handlep)->attrs) 
+    if((*handlep)->attrs)
       {
-          tmp = (*handlep)->attrs; 
+          tmp = (*handlep)->attrs;
           attrs = (*handlep)->attrs->values;
-          for(i = 0; i < tmp->count; i++) 
+          for(i = 0; i < tmp->count; i++)
             {
                 tags[count] = (int32) ATTR_TAG;
                 refs[count] = (int32) hdf_write_attr(xdrs, (*handlep), (NC_attr **)attrs);
-                if(refs[count] == FAIL) 
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                if(refs[count] == FAIL)
+                    HGOTO_FAIL(FAIL);
                 attrs += tmp->szof;
                 count++;
             }
@@ -1675,15 +1557,15 @@ NC **handlep;
 #if DEBUG
     fprintf(stderr, "About to write top level VG with %d elements\n", count);
     {
-        int i; 
-        for(i = 0; i < count; i++) 
+        int i;
+        for(i = 0; i < count; i++)
             fprintf(stderr, "%d :=> %d %d\n", i, tags[i], refs[i]);
     }
 #endif
 
     /* write out final VGroup thang */
     /* set the top level CDF VGroup pointer */
-    (*handlep)->vgid = VHmakegroup((*handlep)->hdf_file, tags, refs, count, 
+    (*handlep)->vgid = VHmakegroup((*handlep)->hdf_file, tags, refs, count,
                                    (*handlep)->path, _HDF_CDF);
 
 
@@ -1714,10 +1596,10 @@ done:
 /* --------------------------------------------------------------
 ** hdf_conv_scales converts old scale values into coord var values.
 ** Searchs through var list for DFTAG_SDS, reads in the scale data,
-** change the ref to ndg_ref and the tag to DATA_TAG, writes the 
-** data out. 
+** change the ref to ndg_ref and the tag to DATA_TAG, writes the
+** data out.
 */
-intn 
+intn
 hdf_conv_scales(handlep)
 NC **handlep;
 {
@@ -1732,58 +1614,49 @@ NC **handlep;
     CONSTR(FUNC, "hdf_conv_scales");
 #endif /* LATER */
 
-    if ((*handlep)->vars) 
+    if ((*handlep)->vars)
       {
           tmp = (*handlep)->vars;
           vars = (NC_var **)tmp->values;
-          for (i = 0; i < tmp->count; i++)   
+          for (i = 0; i < tmp->count; i++)
             {
-                if ( ((*vars)->data_tag == DFTAG_SDS) 
-                     && ((*vars)->data_ref != (*vars)->ndg_ref)) 
+                if ( ((*vars)->data_tag == DFTAG_SDS)
+                     && ((*vars)->data_ref != (*vars)->ndg_ref))
                   {
                       /* read in scale values */
                       scaleref = (*vars)->data_ref;
                       scaletag = (*vars)->data_tag;
                       scalelen = Hlength((*handlep)->hdf_file, scaletag, scaleref);
-                      if (scalelen == FAIL) 
-                        {
-                            ret_value = FAIL;
-                            goto done;
-                        }
-                      if ((*vars)->data_offset == -1)  
+                      if (scalelen == FAIL)
+                          HGOTO_FAIL(FAIL);
+                      if ((*vars)->data_offset == -1)
                         { /* this dim has no scale values */
                             (*vars)->data_ref = 0;
                             (*vars)->data_tag = DATA_TAG;
                         }
-                      else 
+                      else
                         {    /* has scale values */
                             scalebuf = (uint8 *)HDmalloc((uint32)scalelen);
-                            if (scalebuf == NULL) 
-                              {
-                                  ret_value = FAIL;
-                                  goto done;
-                              }
-                            status = Hgetelement((*handlep)->hdf_file, scaletag, 
-                                                 scaleref, scalebuf); 
-                            if (status == FAIL) 
-                              {
-                                  ret_value = FAIL;
-                                  goto done;
-                              }
+                            if (scalebuf == NULL)
+                                HGOTO_FAIL(FAIL);
+
+                            status = Hgetelement((*handlep)->hdf_file, scaletag,
+                                                 scaleref, scalebuf);
+                            if (status == FAIL)
+                                HGOTO_FAIL(FAIL);
 
                             (*vars)->data_tag = DATA_TAG;
                             (*vars)->data_ref = (*vars)->ndg_ref; /* Try to stick
-                                                                     with the current way. If this ref conflicts with 
+                                                                     with the current way. If this ref conflicts with
                                                                      existing SDS, call Hnewref to get a new one. 3/25/97 */
                             datap = scalebuf + (*vars)->data_offset;
                             status = Hputelement((*handlep)->hdf_file, DATA_TAG,
                                                  (*vars)->data_ref, datap, (*vars)->len);
-                            if (status == FAIL) 
+                            if (status == FAIL)
                               {
                                   (*vars)->data_tag = scaletag;
                                   (*vars)->data_ref = scaleref;
-                                  ret_value = FAIL;
-                                  goto done;
+                                  HGOTO_FAIL(FAIL);
                               }
                         } /* has scale values */
                   }  /* DFTAG_SDS */
@@ -1802,13 +1675,13 @@ done:
 
     return ret_value;
 }
-  
+
 
 /* ----------------------------------------------------------------
 ** Read in the dimensions out of a cdf structure
 ** Return FAIL if something goes wrong
 */
-intn 
+intn
 hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
 {
     char vgname[H4_MAX_NC_NAME] = "";
@@ -1835,190 +1708,158 @@ hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
      */
     count = 0;
     dimension = (NC_dim **) HDmalloc(sizeof(NC_dim *) * Vntagrefs(vg) + 1);
-    if(NULL == dimension) 
+    if(NULL == dimension)
       {
           /* replace it with NCadvice or HERROR?? */
 #ifdef DEBUG
           fprintf(stderr, "Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /*
      * Look through for a Vgroup of class _HDF_DIMENSION
      */
-    while((id = Vgetnext(vg, id)) != FAIL) 
-      {
-          if(Visvg(vg, id)) 
+    while((id = Vgetnext(vg, id)) != FAIL)
+    {
+        if(Visvg(vg, id))
+        {
+            dim = Vattach(handle->hdf_file, id, "r");
+            if(dim == FAIL)
+                continue; /* why do we continue? does this failure here
+                                not matter? -GV */
+            if (Vgetclass(dim, vgclass) == FAIL)
+                HGOTO_FAIL(FAIL);
+
+            if(!HDstrcmp(vgclass, _HDF_DIMENSION)
+                   || !HDstrcmp(vgclass, _HDF_UDIMENSION))
             {
-                dim = Vattach(handle->hdf_file, id, "r");
-                if(dim == FAIL) 
-                    continue; /* why do we continue? does this failure here
-                                 not matter? -GV */
-                if (Vgetclass(dim, vgclass) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                int is_dimval, is_dimval01;
 
-                if(!HDstrcmp(vgclass, _HDF_DIMENSION) 
-                   || !HDstrcmp(vgclass, _HDF_UDIMENSION)) 
-                  {
-                      int is_dimval, is_dimval01;
-                      /* init both flags to FALSE  */
-                      is_dimval = FALSE;
-                      is_dimval01 = FALSE;
+                /* init both flags to FALSE  */
+                is_dimval = FALSE;
+                is_dimval01 = FALSE;
 
-                      if (Vinquire(dim, &entries, vgname) == FAIL)
+                if (Vinquire(dim, &entries, vgname) == FAIL)
+                    HGOTO_FAIL(FAIL);
+
+                /*
+                 * look through for a Vdata of class DIM_VALS01 and/or DIM_VALS
+                 * to get size
+                 */
+                sub_id = -1;
+                while(((sub_id = Vgetnext(dim, sub_id)) != FAIL) )
+                {
+                    if(Visvs(dim, sub_id))
+                    {
+                        vs = VSattach(handle->hdf_file, sub_id, "r");
+                        if(vs == FAIL)
+                            HGOTO_FAIL(FAIL);
+
+                        if (VSgetclass(vs, vsclass) == FAIL)
+                            HGOTO_FAIL(FAIL);
+
+                        if(!HDstrcmp(vsclass, DIM_VALS))
                         {
-                            ret_value = FAIL;
-                            goto done;
+                            is_dimval = TRUE;
+                            if (HDstrcmp(vgclass, _HDF_UDIMENSION))  /* not unlimited dim */
+                            {
+                                if (VSQuerycount(vs, &dim_size) == FAIL)
+                                    HGOTO_FAIL(FAIL);
+                            }
                         }
-      	
-                      /* 
-                       * look through for a Vdata of class DIM_VALS01 and/or DIM_VALS 
-                       * to get size 
-                       */
-                      sub_id = -1;
-                      while(((sub_id = Vgetnext(dim, sub_id)) != FAIL) ) 
-                        {
-                            if(Visvs(dim, sub_id)) 
-                              {
-                                  vs = VSattach(handle->hdf_file, sub_id, "r");
-                                  if(vs == FAIL) 
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    }
-      
-                                  if (VSgetclass(vs, vsclass) == FAIL)
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    }
-      
-                                  if(!HDstrcmp(vsclass, DIM_VALS)) 
-                                    {
-                                        is_dimval = TRUE;
-                                        if (HDstrcmp(vgclass, _HDF_UDIMENSION))  /* not unlimited di
-                                                                                    m */
-                                          {
-                                              if (VSQuerycount(vs, &dim_size) == FAIL)
-                                                {
-                                                    ret_value = FAIL;
-                                                    goto done;
-                                                }
-                                          }
-                                    }
-                                  if ((!HDstrcmp(vsclass, DIM_VALS01)) 
-                                      || (!HDstrcmp(vgclass, _HDF_UDIMENSION))) 
-                                    { /* DIM_VALS && _HDF_UDIMENSION */
-                                        int32 val;	/* needs a temp var since handle->numrecs */
+                        if ((!HDstrcmp(vsclass, DIM_VALS01))
+                                      || (!HDstrcmp(vgclass, _HDF_UDIMENSION)))
+                        { /* DIM_VALS && _HDF_UDIMENSION */
+                            int32 val;    /* needs a temp var since handle->numrecs */
                                         /* may not be an int32 */
-       /* 
+       /*
           The call to VSsetfields fails for the files created with the library
           version 3.3r1. This call is not necessary since handle vs is
-          obtained by specifying class name. 
+          obtained by specifying class name.
           Elena Pourmal 2/17/99
 
-                                        if (VSsetfields(vs, "Values") == FAIL)
-                                          {
-                                              ret_value = FAIL;
-                                              goto done;
-                                          }
+                            if (VSsetfields(vs, "Values") == FAIL)
+                            {
+                                ret_value = FAIL;
+                                goto done;
+                            }
         */
 
-                                        if (VSseek(vs, 0) == FAIL)
-                                          {
-                                              ret_value = FAIL;
-                                              goto done;
-                                          }
+                            if (VSseek(vs, 0) == FAIL)
+                                HGOTO_FAIL(FAIL);
 
-                                        /*
-                                         * This is highly dangerous since there might be multiple
-                                         * unlimited dimensions
-                                         */
-                                        if(VSread(vs, (uint8 *) &val, 1, FULL_INTERLACE) != 1)
-                                          {
-                                              ret_value = FAIL;
-                                              goto done;
-                                          }
-                                        if (!HDstrcmp(vgclass, _HDF_UDIMENSION))   
-                                          {
-                                              dim_size = NC_UNLIMITED;
-                                              handle->numrecs = val;
-                                          }
-                                        else  
-                                            dim_size = val;
-                                    }  /*  */
+                            /*
+                             * This is highly dangerous since there might be multiple
+                             * unlimited dimensions
+                             */
+                            if(VSread(vs, (uint8 *) &val, 1, FULL_INTERLACE) != 1)
+                                HGOTO_FAIL(FAIL);
+                            if (!HDstrcmp(vgclass, _HDF_UDIMENSION))
+                            {
+                                dim_size = NC_UNLIMITED;
+                                handle->numrecs = val;
+                            }
+                            else
+                                dim_size = val;
+                        }  /* DIM_VALS && _HDF_UDIMENSION */
 
-                                  if (!HDstrcmp(vsclass, DIM_VALS01)) /* dimval01  */
-                                      is_dimval01 = TRUE;
+                        if (!HDstrcmp(vsclass, DIM_VALS01)) /* dimval01  */
+                            is_dimval01 = TRUE;
 
-                                  if (VSdetach(vs) == FAIL)
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    } 
+                        if (VSdetach(vs) == FAIL)
+                            HGOTO_FAIL(FAIL);
 
-                                  /* Is it the second dim vs of a compatible dim? */
-                                  found = FALSE;
-                                  for (i = count-1; ((i >= 0) && (!found)); i--)  
-                                    {
-                                        if (!HDstrcmp(vgname, dimension[i]->name->values) &&
-                                            (dim_size == dimension[i]->size))     {
-                                            /* vgname is the dim name. vgname may be diff from vsname */
-                                            if (is_dimval01 == TRUE && is_dimval == TRUE)
-                                                dimension[i]->dim00_compat = 1;
-                                            found = TRUE;   /* the second vs */
-                                        }
-                                    }  /* for */
+                        /* Is it the second dim vs of a compatible dim? */
+                        found = FALSE;
+                        for (i = count-1; ((i >= 0) && (!found)); i--)
+                        {
+                            if (!HDstrcmp(vgname, dimension[i]->name->values) &&
+                                (dim_size == dimension[i]->size)) {
+                                /* vgname is the dim name and may be diff from vsname */
+                                if (is_dimval01 == TRUE && is_dimval == TRUE)
+                                    dimension[i]->dim00_compat = 1;
+                                found = TRUE;   /* the second vs */
+                            }
+                        }  /* for */
 
-                                  if (!found) 
-                                    {
-                                        dimension[count] = NC_new_dim(vgname, dim_size);
-                                        if(NULL == dimension[count]) 
-                                          {
+                        if (!found)
+                        {
+                            dimension[count] = NC_new_dim(vgname, dim_size);
+                            if(NULL == dimension[count])
+                            {
 #ifdef DEBUG
-                                              /* replace it with NCadvice or HERROR?? */
-                                              fprintf(stderr, "Can't create new dimension #%d\n", count);
+                                /* replace it with NCadvice or HERROR?? */
+                                fprintf(stderr, "Can't create new dimension #%d\n", count);
 #endif
-                                              ret_value = FAIL;
-                                              goto done;
-                                          }  /*  dimension[count]  */
+                                HGOTO_FAIL(FAIL);
+                            }  /*  dimension[count]  */
 #if DEBUG
-                                        fprintf(stderr, "Dimension <%s> has size %d\n", vgname, dim_size);
+                            fprintf(stderr, "Dimension <%s> has size %d\n", vgname, dim_size);
 #endif
-                                        if (!HDstrcmp(vsclass, DIM_VALS01)) /* dimvals01 only  */
+                            if (!HDstrcmp(vsclass, DIM_VALS01)) /* dimvals01 only  */
                                             dimension[count]->dim00_compat = 0;
 
-					/* record vgroup id here so we can use later */
-					/* Note: this is only for later file -BMR */
-					dimension[count]->vgid = id;
+                            /* record vgroup id here so we can use later */
+                            /* Note: this is only for later file -BMR */
+                            dimension[count]->vgid = id;
 
-                                        count++;
-                                    }  /* found */
-                              }    /* is vs  */
-                        }      /* while in dimension vg  */
-                  }        /* is vg  */
+                            count++;
+                        }  /* found */
+                    }    /* is vs  */
+                } /* while in dimension vg  */
+            } /* is vg  */
 
-                if (Vdetach(dim) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
-            }  /* while */
-      }
+            if (Vdetach(dim) == FAIL)
+                HGOTO_FAIL(FAIL);
+        }  /* while */
+    }
 
     if(count)
       {
           handle->dims = NC_new_array(NC_DIMENSION, count, (Void *) dimension);
           if (handle->dims == NULL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+                HGOTO_FAIL(FAIL);
       }
     else
         handle->dims = NULL;
@@ -2044,7 +1885,7 @@ done:
 } /* hdf_read_dims */
 
 /******************************************************************************
- NAME 
+ NAME
    hdf_num_attrs
 
  DESCRIPTION
@@ -2075,8 +1916,7 @@ hdf_num_attrs(NC *handle,/* IN: handle to SDS */
 #ifdef HDF_NUM_ATTRS
           fprintf(stderr,"hdf_read_attrs: Vntagrefs failed \n");
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
 #ifdef HDF_NUM_ATTRS
@@ -2086,40 +1926,28 @@ hdf_num_attrs(NC *handle,/* IN: handle to SDS */
     /*
      * look through for a Vdata of class _HDF_ATTRIBUTE
      */
-    for (t = 0; t < n; t++) 
+    for (t = 0; t < n; t++)
       {
           if (Vgettagref(vg, t, &tag, &id) == FAIL)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
-      
-          if(tag == DFTAG_VH) 
+              HGOTO_FAIL(FAIL);
+
+          if(tag == DFTAG_VH)
             {
                 vs = VSattach(handle->hdf_file, id, "r");
-                if(vs == FAIL) 
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
-          
-                if (VSgetclass(vs, class) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                if(vs == FAIL)
+                    HGOTO_FAIL(FAIL);
 
-                if(!HDstrcmp(class, _HDF_ATTRIBUTE)) 
+                if (VSgetclass(vs, class) == FAIL)
+                    HGOTO_FAIL(FAIL);
+
+                if(!HDstrcmp(class, _HDF_ATTRIBUTE))
                     count++;
 
                 if (VSdetach(vs) == FAIL)
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                    HGOTO_FAIL(FAIL);
             }
       }
-  
+
 #ifdef HDF_NUM_ATTRS
     fprintf(stderr, "hdf_num_attrs: number of attributes is %d \n", count);
 #endif
@@ -2167,8 +1995,7 @@ hdf_read_attrs(XDR *xdrs, NC *handle, int32 vg)
 #ifdef HDF_READ_ATTRS
           fprintf(stderr,"hdf_read_attrs: Vntagrefs failed \n");
 #endif
-          ret_value = NULL;
-          goto done;
+          HGOTO_FAIL(NULL);
       }
 
 #ifdef HDF_READ_ATTRS
@@ -2180,108 +2007,76 @@ hdf_read_attrs(XDR *xdrs, NC *handle, int32 vg)
      */
     count = 0;
     attributes = (NC_attr **) HDmalloc(sizeof(NC_attr *) * n + 1);
-    if(NULL == attributes) 
+    if(NULL == attributes)
       {
           /* replace it with NCAdvice or HERROR? */
 #ifdef HDF_READ_ATTRS
           fprintf(stderr, "Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-          ret_value = NULL;
-          goto done;
+          HGOTO_FAIL(NULL);
       }
 
     /*
      * look through for a Vdata of class _HDF_ATTRIBUTE
      */
-    for (t = 0; t < n; t++) 
+    for (t = 0; t < n; t++)
       {
           if (Vgettagref(vg, t, &tag, &id) == FAIL)
-            {
-                ret_value = NULL;
-                goto done;
-            }
-      
-          if(tag == DFTAG_VH) 
+                HGOTO_FAIL(NULL);
+
+          if(tag == DFTAG_VH)
             {
                 vs = VSattach(handle->hdf_file, id, "r");
-                if(vs == FAIL) 
-                  {
-                      ret_value = NULL;
-                      goto done;
-                  }
-          
-                if (VSgetclass(vs, class) == FAIL)
-                  {
-                      ret_value = NULL;
-                      goto done;
-                  }
+                if(vs == FAIL)
+                      HGOTO_FAIL(NULL);
 
-                if(!HDstrcmp(class, _HDF_ATTRIBUTE)) 
+                if (VSgetclass(vs, class) == FAIL)
+                      HGOTO_FAIL(NULL);
+
+                if(!HDstrcmp(class, _HDF_ATTRIBUTE))
                   {
                       if (VSinquire(vs, &attr_size, NULL, fields, &vsize, vsname) == FAIL)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
                       if ((nt = VFfieldtype(vs, 0)) == FAIL)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
                       if ((type = hdf_unmap_type(nt)) == FAIL)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
                       values = (char *) HDmalloc(vsize * attr_size + 1);
                       if (NULL == values)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
                       if (VSsetfields(vs, fields) == FAIL)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
                       if (VSread(vs, (uint8 *) values, attr_size, FULL_INTERLACE) == FAIL)
-                        {
-                            ret_value = NULL;
-                            goto done;
-                        }
+                            HGOTO_FAIL(NULL);
 
-              
-                      if(type == NC_CHAR) 
+
+                      if(type == NC_CHAR)
                         {
                             if ((attr_size = VFfieldorder(vs, 0)) == FAIL)
-                              {
-                                  ret_value = NULL;
-                                  goto done;
-                              }
+                                  HGOTO_FAIL(NULL);
 
                             ((char *) values)[attr_size] = '\0';
                         }
 
-                      attributes[count] = 
+                      attributes[count] =
                           (NC_attr *) NC_new_attr(vsname, type, attr_size, values);
-                      if(NULL == attributes[count]) 
+                      if(NULL == attributes[count])
                         {
                             /* replace it with NCadvice or HERROR? */
 #ifdef HDF_READ_ATTRS
                             fprintf(stderr, "hdf_read_attrs: Can't create new attribute #%d\n", count);
 #endif
-                            ret_value = NULL;
-                            goto done;
+                            HGOTO_FAIL(NULL);
                         }
                       attributes[count]->HDFtype = nt;
-              
+
 #ifdef HDF_READ_ATTRS
-                      fprintf(stderr, "hdf_read_attrs: Attribute <%s> has type %d and size %d\n", 
+                      fprintf(stderr, "hdf_read_attrs: Attribute <%s> has type %d and size %d\n",
                               vsname, type, attr_size);
 #endif
                       /* free values and reset to NULL */
@@ -2291,15 +2086,12 @@ hdf_read_attrs(XDR *xdrs, NC *handle, int32 vg)
                   } /* end if attribute ? */
 
                 if (VSdetach(vs) == FAIL)
-                  {
-                      ret_value = NULL;
-                      goto done;
-                  }
+                      HGOTO_FAIL(NULL);
             } /* end if DFTAG_VH */
       } /* end for */
-  
+
     /* create array of attributes */
-    if(count) 
+    if(count)
         Array = NC_new_array(NC_ATTRIBUTE, count, (Void *) attributes);
 
 #ifdef HDF_READ_ATTRS
@@ -2332,9 +2124,9 @@ done:
 **   set the numrecs fields of variables (so we can fill record
 **   variables intelligently)
 */
-intn 
-hdf_read_vars(XDR *xdrs, 
-              NC *handle, 
+intn
+hdf_read_vars(XDR *xdrs,
+              NC *handle,
               int32 vg)
 {
     char     vgname[H4_MAX_NC_NAME] = "";
@@ -2361,7 +2153,7 @@ hdf_read_vars(XDR *xdrs,
     register int32   var, sub;
     intn     ret_value = SUCCEED;
 #ifdef LATER
-    CONSTR(FUNC,"hdf_read_vars"); 
+    CONSTR(FUNC,"hdf_read_vars");
 #endif /* LATER */
 
     count = 0;
@@ -2376,71 +2168,64 @@ hdf_read_vars(XDR *xdrs,
      */
     count = 0;
     variables = (NC_var **) HDmalloc(sizeof(NC_var *) * Vntagrefs(vg) + 1);
-    if(NULL == variables) 
+    if(NULL == variables)
       {
 #ifdef HDF_READ_VARS
           fprintf(stderr, "hdf_read_vars:Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /*
      * Allocate enough space in case lots of dimensions
      */
     dims = (int *) HDmalloc(sizeof(int) * Vntagrefs(vg) + 1);
-    if(NULL == dims) 
+    if(NULL == dims)
       {
 #ifdef HDF_READ_VARS
           fprintf(stderr, "hdf_read_vars:Out of memory line %d file %s\n", __LINE__, __FILE__);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /*
      * Look through for a Vgroup of class _HDF_VARIABLE
      */
     if ((vg_size = Vntagrefs(vg)) == FAIL)
-      {
-          ret_value = FAIL;
-          goto done;
-      }
+          HGOTO_FAIL(FAIL);
 
-    for(i = 0; i < vg_size; i++) 
+    for(i = 0; i < vg_size; i++)
       {
           if (Vgettagref(vg, i, &tag, &id) == FAIL)
             {
 #ifdef HDF_READ_VARS
                 fprintf(stderr, "hdf_read_vars:Vgettagref failed\n");
 #endif
-                ret_value = FAIL;
-                goto done;
+                HGOTO_FAIL(FAIL);
             }
 
-          if(tag == DFTAG_VG) 
+          if(tag == DFTAG_VG)
             {
                 var = Vattach(handle->hdf_file, id, "r");
-                if(var == FAIL) 
+                if(var == FAIL)
                     continue; /* isn't this bad? -GV */
-          
+
                 if (Vgetclass(var, class) == FAIL)
                   {
 #ifdef HDF_READ_VARS
                       fprintf(stderr, "hdf_read_vars:Vgetclass failed\n");
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                    HGOTO_FAIL(FAIL);
                   }
 
-		/* Process as below if this VGroup represents a Variable or
-		   a Coordinate Variable */
+        /* Process as below if this VGroup represents a Variable or
+        a Coordinate Variable */
                 if(!HDstrcmp(class, _HDF_VARIABLE))
                   {
-              
+
                       /*
                        * We have found a VGroup representing a Variable or a
-		       * a Coordinate Variable
+            * a Coordinate Variable
                        */
                       ndims = 0;
                       type = NC_UNSPECIFIED;
@@ -2454,27 +2239,25 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                             fprintf(stderr, "hdf_read_vars:Vinquire failed\n");
 #endif
-                            ret_value = FAIL;
-                            goto done;
+                            HGOTO_FAIL(FAIL);
                         }
-          
+
                       /*
                        * Loop through contents looking for dimensions
                        */
-                      for (t = 0; t < n; t++) 
+                      for (t = 0; t < n; t++)
                         {
-			    char dimclass[H4_MAX_NC_CLASS] = "";
-			    char vsclass[H4_MAX_NC_CLASS] = "";
+                char dimclass[H4_MAX_NC_CLASS] = "";
+                char vsclass[H4_MAX_NC_CLASS] = "";
                             if (Vgettagref(var, t, &tag, &sub_id) == FAIL)
-                              {
+                            {
 #ifdef HDF_READ_VARS
-                                  fprintf(stderr, "hdf_read_vars:Vgettagref failed\n");
+                                fprintf(stderr, "hdf_read_vars:Vgettagref failed\n");
 #endif
-                                  ret_value = FAIL;
-                                  goto done;
-                              }
+                                HGOTO_FAIL(FAIL);
+                            }
 
-                            switch(tag) 
+                            switch(tag)
                               {
                               case DFTAG_VG :   /* ------ V G R O U P ---------- */
                                   sub = Vattach(handle->hdf_file, sub_id, "r");
@@ -2483,8 +2266,7 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:Vattach failed\n");
 #endif
-                                        ret_value = FAIL;
-                                        goto done;
+                                        HGOTO_FAIL(FAIL);
                                     }
 
                                   if (FAIL == Vgetclass(sub, dimclass))
@@ -2492,34 +2274,31 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:Vgetclass failed\n");
 #endif
-                                        ret_value = FAIL;
-                                        goto done;
+                                        HGOTO_FAIL(FAIL);
                                     }
 
-                                  if(!HDstrcmp(dimclass, _HDF_DIMENSION) 
-                                     || !HDstrcmp(dimclass, _HDF_UDIMENSION)) 
+                                  if(!HDstrcmp(dimclass, _HDF_DIMENSION)
+                                     || !HDstrcmp(dimclass, _HDF_UDIMENSION))
                                     {
-                          
+
                                         if(!HDstrcmp(dimclass, _HDF_UDIMENSION))
                                             is_rec_var = TRUE;
-                          
+
                                         if (FAIL == Vinquire(sub, &entries, subname))
-                                          {
+                                        {
 #ifdef HDF_READ_VARS
-                                        fprintf(stderr, "hdf_read_vars:Vinquire failed\n");
+                                            fprintf(stderr, "hdf_read_vars:Vinquire failed\n");
 #endif
-                                              ret_value = FAIL;
-                                              goto done;
-                                          }
-                          
+                                            HGOTO_FAIL(FAIL);
+                                        }
+
                                         dims[ndims] = (int) NC_dimid( handle, subname);
                                         if (-1 == dims[ndims]) /* should change to FAIL */
                                           {
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:NC_dimid failed\n");
 #endif
-                                              ret_value = FAIL;
-                                              goto done;
+                            HGOTO_FAIL(FAIL);
                                           }
 
                                         ndims++;
@@ -2529,24 +2308,17 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:Vdetach failed\n");
 #endif
-                                        ret_value = FAIL;
-                                        goto done;
+                            HGOTO_FAIL(FAIL);
                                     }
 
                                   break;
                               case DFTAG_VH :   /* ----- V D A T A ----- */
                                   sub = VSattach(handle->hdf_file, sub_id, "r");
                                   if (FAIL == sub)
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    }
+                                      HGOTO_FAIL(FAIL);
 
                                   if (FAIL == VSgetclass(sub, vsclass))
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    }
+                            HGOTO_FAIL(FAIL);
 
                                   if(!HDstrcmp(vsclass, _HDF_SDSVAR))
                                         var_type = IS_SDSVAR;
@@ -2556,10 +2328,7 @@ hdf_read_vars(XDR *xdrs,
                                         var_type = UNKNOWN;
 
                                   if (FAIL == VSdetach(sub))
-                                    {
-                                        ret_value = FAIL;
-                                        goto done;
-                                    }
+                                      HGOTO_FAIL(FAIL);
                                   break;
                               case DFTAG_NDG :  /* ----- NDG Tag for HDF 3.2 ----- */
                                   ndg_ref = sub_id;
@@ -2567,8 +2336,8 @@ hdf_read_vars(XDR *xdrs,
                               case DFTAG_SD :   /* ------- Data Storage ------ */
                                   data_ref = sub_id;
                                   /* Note: apparently Hlength will fail in certain cases, but
-                                           but this okay since I believe this is because 
-                                           the data does not exist yet in the file? 
+                                           but this okay since I believe this is because
+                                           the data does not exist yet in the file?
                                            So we can't catch this error -GV*/
                                   data_count = Hlength(handle->hdf_file, DATA_TAG, sub_id);
 #ifdef HDF_READ_VARS
@@ -2588,8 +2357,7 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:Hgetlement failed\n");
 #endif
-                                        ret_value = FAIL;
-                                        goto done;
+                            HGOTO_FAIL(FAIL);
                                     }
 
                                   HDFtype = ntstring[1];
@@ -2598,27 +2366,26 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                         fprintf(stderr, "hdf_read_vars:hdf_unmap_teyp failed\n");
 #endif
-                                        ret_value = FAIL;
-                                        goto done;
+                            HGOTO_FAIL(FAIL);
                                     }
 
                                   /*
                                    * Check if data was stored in native format
                                    * And make sure the numbertype version numbers are the same
                                    */
-                                  if((ntstring[0] != DFNT_VERSION) 
-                                     || ((ntstring[3] != DFNTF_NONE) 
-                                         && (ntstring[3] != DFNTF_IEEE))) 
+                                  if((ntstring[0] != DFNT_VERSION)
+                                     || ((ntstring[3] != DFNTF_NONE)
+                                         && (ntstring[3] != DFNTF_IEEE)))
                                     {
-                          
+
                                         /* check if in native mode for a different type of machine  or external data file is LITEND */
                                         if (ntstring[3] == DFNTF_PC)
                                             HDFtype |= DFNT_LITEND;
                                         else
                                           {
-                                              if(ntstring[3] != (uint8)DFKgetPNSC(HDFtype, DF_MT)) 
+                                              if(ntstring[3] != (uint8)DFKgetPNSC(HDFtype, DF_MT))
                                                 {
-                                                    /* 
+                                                    /*
                                                      * OK, we have a problem here --- is in native mode
                                                      * for a different machine.  PUNT
                                                      */
@@ -2626,8 +2393,8 @@ hdf_read_vars(XDR *xdrs,
 #ifdef HDF_READ_VARS
                                                     fprintf(stderr, "hdf_read_vars: BAD number type \n");
 #endif
-                                                } 
-                                              else 
+                                                }
+                                              else
                                                 {
                                                     /*
                                                      * Is in native mode but its OK --- same machine type
@@ -2636,31 +2403,30 @@ hdf_read_vars(XDR *xdrs,
                                                 }
                                           }
                                     }
-                      
+
                                   break;
                               default:
                                   /* Do nothing */
                                   break;
                               }
                         }
-          
+
                       variables[count] = NC_new_var(vgname, type, ndims, dims);
-		      /* BMR: put back hdf type that was set wrong by 
-			 NC_new_var; please refer to the cvs history of 
-			 bug #172 for reason on this statement - 4/17/2001 
-		      */
-		      variables[count]->HDFtype = HDFtype;
+            /* BMR: put back hdf type that was set wrong by
+            NC_new_var; please refer to the cvs history of
+            bug #172 for reason on this statement - 4/17/2001
+            */
+            variables[count]->HDFtype = HDFtype;
 
                       vp = variables[count];
-                      if(NULL == vp) 
+                      if(NULL == vp)
                         {
 #ifdef HDF_READ_VARS
                             fprintf(stderr, "hdf_read_vars:Can't read new variable %s\n", vgname);
 #endif
-                            ret_value = FAIL;
-                            goto done;
+                            HGOTO_FAIL(FAIL);
                         }
-              
+
 #ifdef HDF_READ_VARS
                       fprintf(stderr,"hdf_read_vars:Created a variable called %s   (id %d) \n", vgname, id);
 #endif
@@ -2672,7 +2438,7 @@ hdf_read_vars(XDR *xdrs,
 
 #ifdef HDF_READ_VARS
                       fprintf(stderr,"hdf_read_vars:read in %d attributes \n",nattrs );
-#endif              
+#endif
                       /* set up for easy access later */
                       vp->vgid     = id;
                       vp->data_ref = data_ref;
@@ -2680,40 +2446,39 @@ hdf_read_vars(XDR *xdrs,
                       vp->HDFtype  = HDFtype;
                       vp->ndg_ref  = (uint16) ndg_ref;
                       vp->cdf = handle; /* for NC_var_shape */
-		      vp->var_type = var_type;
+            vp->var_type = var_type;
 
                       /* need to process the ragged array info here */
                       /* QUESTION:  Load the whole rag_fill list in now??????? */
-                      if(rag_ref) 
+                      if(rag_ref)
                         {
                             vp->is_ragged = TRUE;
                         }
-              
-                      if(vp->data_ref) 
+
+                      if(vp->data_ref)
                         {
                             /*
                              * We have already seen data for this variable so now
                              *  we need to worry about its numrecs field
                              */
-                  
-                            if(is_rec_var) 
+
+                            if(is_rec_var)
                               {
                                   /*
                                    * Call NC_var_shape() so we can figure out how many
-                                   *  records have been written.  This is horribly 
+                                   *  records have been written.  This is horribly
                                    *  inefficient, but the separation-of-powers gets
                                    *  really mucked up if we wait till later...
                                    */
-                      
+
                                   if(NC_var_shape(vp, handle->dims) == -1)
                                     {
 #ifdef HDF_READ_VARS
                                         fprintf(stderr,"hdf_read_vars:NC_var_shape failed \n" );
-#endif              
-                                        ret_value = FAIL;
-                                        goto done;
+#endif
+                            HGOTO_FAIL(FAIL);
                                     }
-                      
+
                                   /*
                                    * Now figure out how many recs have been written
                                    * For a while there was a -1 at the end of this
@@ -2721,10 +2486,10 @@ hdf_read_vars(XDR *xdrs,
                                    *   (4-Nov-93)
                                    */
                                   vp->numrecs = data_count / vp->dsizes[0];
-                      
+
 #ifdef HDF_READ_VARS
                                   fprintf(stderr, "hdf_read_vars:I have set numrecs to %d\n", vp->numrecs);
-#endif                  
+#endif
                                   /*
                                    * Deallocate the shape info as it will be recomputed
                                    *  at a higher level later
@@ -2733,12 +2498,12 @@ hdf_read_vars(XDR *xdrs,
                                       HDfree(vp->shape);
                                   if(vp->dsizes != NULL)
                                       HDfree(vp->dsizes);
-				  /* Reset these two pointers to NULL after 
-				     freeing.  BMR 4/11/01 */
-				  vp->shape = NULL;
-				  vp->dsizes = NULL;
-                              } 
-                            else 
+                /* Reset these two pointers to NULL after
+                    freeing.  BMR 4/11/01 */
+                vp->shape = NULL;
+                vp->dsizes = NULL;
+                              }
+                            else
                               {
                                   /* Not a rec var, don't worry about it */
                                   vp->numrecs = 1;
@@ -2748,12 +2513,9 @@ hdf_read_vars(XDR *xdrs,
                   } /* end if vgroup class is variable */
 
 bad_number_type: /* ? */
-          
+
                 if (FAIL == Vdetach(var))
-                  {
-                      ret_value = FAIL;
-                      goto done;
-                  }
+                    HGOTO_FAIL(FAIL);
 
             } /* end if DTAG_VG */
       } /* end for vg_size */
@@ -2763,10 +2525,7 @@ bad_number_type: /* ? */
       {
           handle->vars = NC_new_array(NC_VARIABLE, count, (Void *) variables);
           if (NULL == handle->vars)
-            {
-                ret_value = FAIL;
-                goto done;
-            }
+              HGOTO_FAIL(FAIL);
       }
     else
         handle->vars = NULL;
@@ -2822,99 +2581,69 @@ NC **handlep;
 #endif
 
 #ifdef OLD_WAY
-  /* find first thing of type _HDF_CDF */
-  vgid = -1;
-  found = FALSE;
-  while(!found 
-        && ((vgid = Vgetid((*handlep)->hdf_file, vgid)) != FAIL)) 
+    /* find first thing of type _HDF_CDF */
+    vgid = -1;
+    found = FALSE;
+    while(!found && ((vgid = Vgetid((*handlep)->hdf_file, vgid)) != FAIL))
     {
         cdf_vg = Vattach((*handlep)->hdf_file, vgid, "r");
-        if(cdf_vg == FAIL) 
-          {
-            HERROR(DFE_CANTATTACH);
-            ret_value = FAIL;
-            goto done;
-          }
-        if (Vgetclass(cdf_vg, class) == FAIL)
-          { 
-              ret_value = FAIl;
-              goto done;
-          }
+        if(cdf_vg == FAIL)
+            HGOTO_ERROR(DFE_CANTATTACH, FAIL);
 
-        if(!HDstrcmp(class, _HDF_CDF)) 
+        if (Vgetclass(cdf_vg, class) == FAIL)
+            HGOTO_FAIL(FAIL);
+
+        if(!HDstrcmp(class, _HDF_CDF))
             found = TRUE;
-        else 
+        else
           {
             if (Vdetach(cdf_vg) == FAIL)
-              { 
-                  ret_value = FAIL;
-                  goto done;
-              }
+                HGOTO_FAIL(FAIL);
           }
     }
 
+    if(!found)
+        HGOTO_FAIL(FAIL);
 
-  if(!found)
-    {
-      ret_value = FAIL;
-      goto done;
-    }
-  
 #else /* new way */
 
-    if((vgid = Vfindclass((*handlep)->hdf_file,_HDF_CDF))!=FAIL) 
-      {
-          cdf_vg = Vattach((*handlep)->hdf_file, vgid, "r");
-          if(cdf_vg == FAIL) 
-            {
-              HERROR(DFE_CANTATTACH);
-              ret_value = FAIL;
-              goto done;
-            }
-      } /* end if */
+    if((vgid = Vfindclass((*handlep)->hdf_file,_HDF_CDF))!=FAIL)
+    {
+        cdf_vg = Vattach((*handlep)->hdf_file, vgid, "r");
+        if(cdf_vg == FAIL)
+            HGOTO_ERROR(DFE_CANTATTACH, FAIL);
+    } /* end if */
     else
-      {
-        ret_value = FAIL;
-        goto done;
-      }
+        HGOTO_FAIL(FAIL);
 
 #endif /* new way */
 
-  (*handlep)->vgid = vgid; /* ref of vgroup */
+    (*handlep)->vgid = vgid; /* ref of vgroup */
 
 #if DEBUG
-  Vinquire(cdf_vg, &entries, vgname);
-  fprintf(stderr, "Found _HDF_CDF : %s  (%d entries)\n", vgname, entries);
+    Vinquire(cdf_vg, &entries, vgname);
+    fprintf(stderr, "Found _HDF_CDF : %s  (%d entries)\n", vgname, entries);
 #endif
 
-  /* read in dimensions */
-  status = hdf_read_dims(xdrs, (*handlep), cdf_vg);
-  if(status == FAIL)
-    {
-        ret_value = FAIL;
-        goto done;
-    }
+    /* read in dimensions */
+    status = hdf_read_dims(xdrs, (*handlep), cdf_vg);
+    if(status == FAIL)
+        HGOTO_FAIL(FAIL);
 
-  /* read in variables */
-  status = hdf_read_vars(xdrs, (*handlep), cdf_vg);
-  if(status == FAIL)
-    {
-        ret_value = FAIL;
-        goto done;
-    }
+    /* read in variables */
+    status = hdf_read_vars(xdrs, (*handlep), cdf_vg);
+    if(status == FAIL)
+        HGOTO_FAIL(FAIL);
 
-  /* read in attributes */
-  if(hdf_num_attrs((*handlep), cdf_vg) > 0 )
+    /* read in attributes */
+    if(hdf_num_attrs((*handlep), cdf_vg) > 0 )
       (*handlep)->attrs = hdf_read_attrs(xdrs, (*handlep), cdf_vg);
-  else
+    else
       (*handlep)->attrs = NULL;
 
-  /* deatch from cdf vgroup */
-  if (FAIL == Vdetach(cdf_vg))
-    {
-        ret_value = FAIL;
-        goto done;
-    }
+    /* detach from cdf vgroup */
+    if (FAIL == Vdetach(cdf_vg))
+        HGOTO_FAIL(FAIL);
 
 done:
     if (ret_value == FAIL)
@@ -2948,16 +2677,13 @@ NC **handlep;
     fprintf(stderr, "hdf_xdr_cdf: i've been called op = %d \n", xdrs->x_op);
 #endif
 
-    switch(xdrs->x_op) 
+    switch(xdrs->x_op)
       {
       case XDR_ENCODE :
-          if((*handlep)->vgid) 
+          if((*handlep)->vgid)
             {
                 if (FAIL == hdf_cdf_clobber((*handlep)))
-                  {
-                      ret_value = FAIL; 
-                      goto done;
-                  }
+                    HGOTO_FAIL(FAIL);
             }
           status = hdf_write_xdr_cdf(xdrs, handlep);
           if (FAIL == status)
@@ -2965,12 +2691,11 @@ NC **handlep;
 #ifdef HDF_XDR_CDF
                 fprintf(stderr, "hdf_xdr_cdf: hdf_write_xdr_cdf failed \n");
 #endif
-                ret_value = FAIL;
-                goto done;
+                HGOTO_FAIL(FAIL);
             }
           break;
       case XDR_DECODE :
-          if(FAIL == (status = hdf_read_xdr_cdf(xdrs, handlep))) 
+          if(FAIL == (status = hdf_read_xdr_cdf(xdrs, handlep)))
             {
 #ifdef HDF_XDR_CDF
                 fprintf(stderr, "hdf_xdr_cdf: hdf_read_xdr_cdf failed \n");
@@ -2982,9 +2707,7 @@ NC **handlep;
 #ifdef HDF_XDR_CDF
                       fprintf(stderr, "hdf_xdr_cdf: hdf_read_sds failed \n");
 #endif
-                      HERROR(DFE_BADNDG);
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_ERROR(DFE_BADNDG, FAIL);
                   }
             } /* end if */
           break;
@@ -3004,7 +2727,7 @@ done:
       }
      /* Normal cleanup */
 
-    return ret_value;  
+    return ret_value;
 } /* hdf_xdr_cdf */
 
 /* ---------------------- hdf_vg_clobber --------------- */
@@ -3013,7 +2736,7 @@ done:
   just trash everything inside of it, making sure that any VDatas
   with class == DATA are saved
 */
-intn 
+intn
 hdf_vg_clobber(handle, id)
 NC *handle;
 int id;
@@ -3031,14 +2754,13 @@ int id;
 
     /* attach to top level vgroup with read access */
     vg = Vattach(handle->hdf_file, id, "r");
-    if(FAIL == vg) 
+    if(FAIL == vg)
       {
 #ifdef HDF_VG_CLOBBER
           fprintf(stderr,"hdf_vg_clobber: Vattach failed for vgroup ref =%d\n",id);
           HEprint(stderr,0);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /* get number of members in vgroup */
@@ -3048,29 +2770,27 @@ int id;
 #ifdef HDF_VG_CLOBBER
           fprintf(stderr,"hdf_vg_clobber: Vntagrefs failed \n");
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /* Loop though and kill stuff */
-    for (t = 0; t < n; t++) 
+    for (t = 0; t < n; t++)
       {   /* get tag/ref of elment in vgroup */
           if (FAIL == Vgettagref(vg, t, &tag, &ref))
             {
 #ifdef HDF_VG_CLOBBER
                 fprintf(stderr,"hdf_vg_clobber: Vgettagref failed \n");
 #endif
-                ret_value = FAIL;
-                goto done;
+                HGOTO_FAIL(FAIL);
             }
 
 
 #ifdef HDF_VG_CLOBBER
           fprintf(stderr, "hdf_vg_clobber: Looking at <%d, %d> in vgroup\n", tag, ref);
 #endif
-          /* switch on the type of element: vgroup, vdata, data, 
+          /* switch on the type of element: vgroup, vdata, data,
              everyting else */
-          switch(tag) 
+          switch(tag)
             {
             case DFTAG_VG : /* recursive call */
 #ifdef HDF_VG_CLOBBER
@@ -3085,8 +2805,7 @@ int id;
 #ifdef HDF_VG_CLOBBER
                             fprintf(stderr,"hdf_vg_clobber: hdf_vg_clobber failed member whose vgroup ref=%d\n",ref);
 #endif
-                            ret_value = FAIL;
-                            goto done;
+                            HGOTO_FAIL(FAIL);
                         }
                   }
                 break;
@@ -3100,8 +2819,7 @@ int id;
 #ifdef HDF_VG_CLOBBER
                             fprintf(stderr,"hdf_vg_clobber: VSdelete failed for vdata ref=%d\n",ref);
 #endif
-                            ret_value = FAIL;
-                            goto done;
+                            HGOTO_FAIL(FAIL);
                         }
                   }
 #ifdef HDF_VG_CLOBBER
@@ -3120,8 +2838,7 @@ int id;
 #ifdef HDF_VG_CLOBBER
                       fprintf(stderr,"hdf_vg_clobber: Hdeldd failed \n");
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
 #ifdef HDF_VG_CLOBBER
@@ -3146,7 +2863,7 @@ done:
       }
      /* Normal cleanup */
 
-    return ret_value;  
+    return ret_value;
 } /* hdf_vg_clobber */
 
 
@@ -3154,7 +2871,7 @@ done:
 /*
   Delete a netCDF structure that has been already written to disk
 */
-intn 
+intn
 hdf_cdf_clobber(handle)
 NC *handle;
 {
@@ -3162,7 +2879,7 @@ NC *handle;
     int    n, t, status;
     intn   ret_value = SUCCEED;
 
-    if(!handle->vgid) 
+    if(!handle->vgid)
       { /* okay right? */
           ret_value = SUCCEED; /* hmm...since ref of vgroup is zero? */
           goto done;
@@ -3174,8 +2891,7 @@ NC *handle;
 #ifdef HDF_CDF_CLOBBER
           fprintf(stderr,"hdf_cdf_clobber: hdf_close failed \n");
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
 #ifdef HDF_CDF_CLOBBER
@@ -3184,14 +2900,13 @@ NC *handle;
 
     /* loop through and Clobber all top level VGroups */
     vg = Vattach(handle->hdf_file, handle->vgid, "r");
-    if(vg == FAIL) 
+    if(vg == FAIL)
       {
 #ifdef HDF_CDF_CLOBBER
           fprintf(stderr,"hdf_cdf_clobber: Vattach failed for vgroup ref=%d\n",
                   handle->vgid);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /* get number of members of Vgroup */
@@ -3201,12 +2916,11 @@ NC *handle;
 #ifdef HDF_CDF_CLOBBER
           fprintf(stderr,"hdf_cdf_clobber: Vntagrefs failed \n");
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     /* Loop though and just kill everyone */
-    for (t = 0; t < n; t++) 
+    for (t = 0; t < n; t++)
       {
           if (FAIL == Vgettagref(vg, t, &tag, &ref))
             {
@@ -3214,12 +2928,11 @@ NC *handle;
                 fprintf(stderr,"hdf_cdf_clobber: Vgettagref failed for vgroup %d\n",
                         handle->vgid);
 #endif
-                ret_value = FAIL;
-                goto done;
+                HGOTO_FAIL(FAIL);
             }
 
           /* if this member is a vgroup destroy everything in it */
-          if(tag == DFTAG_VG) 
+          if(tag == DFTAG_VG)
             {
 #ifdef HDF_CDF_CLOBBER
                 fprintf(stderr,"hdf_cdf_clobber: member of vgroup is a vgroup,");
@@ -3232,7 +2945,7 @@ NC *handle;
                   }
             }
 
-          switch(tag) 
+          switch(tag)
             {
             case DFTAG_VG:
                 status = Vdelete(handle->hdf_file, (int32) ref);
@@ -3242,8 +2955,7 @@ NC *handle;
                       fprintf(stderr,"hdf_cdf_clobber: Vdelete failed for vgroup %d\n",
                               ref);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
 #ifdef HDF_CDF_CLOBBER
@@ -3259,8 +2971,7 @@ NC *handle;
                       fprintf(stderr,"hdf_cdf_clobber: VSdelete failed for vdata %d\n",
                               ref);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
 #ifdef HDF_CDF_CLOBBER
@@ -3276,8 +2987,7 @@ NC *handle;
                       fprintf(stderr,"hdf_cdf_clobber: Hdeldd failed for tag/ref %d/%d\n",
                               tag,ref);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
 #ifdef HDF_CDF_CLOBBER
@@ -3294,8 +3004,7 @@ NC *handle;
           fprintf(stderr,"hdf_cdf_clobber: Vdetach failed for vgroup %d\n",
                   handle->vgid);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
     status = Vdelete(handle->hdf_file, (int32) handle->vgid);
@@ -3305,8 +3014,7 @@ NC *handle;
           fprintf(stderr,"hdf_cdf_clobber: Vdelete failed for vgroup %d\n",
                   handle->vgid);
 #endif
-          ret_value = FAIL;
-          goto done;
+          HGOTO_FAIL(FAIL);
       }
 
 #ifdef HDF_CDF_CLOBBER
@@ -3316,7 +3024,7 @@ NC *handle;
     handle->vgid = 0; /* reset ref of SDS vgroup to invalid ref */
 
 done:
-  if(ret_value == FAIL)   
+  if(ret_value == FAIL)
     { /* Error condition cleanup */
 #ifdef HDF_CDF_CLOBBER
         fprintf(stderr,"hdf_cdf_clobber: Failed to Clobber VGroup %d\n\n", handle->vgid);
@@ -3324,14 +3032,14 @@ done:
     } /* end if */
 
   /* Normal function cleanup */
-  return ret_value;    
+  return ret_value;
 } /* hdf_cdf_clobber */
 
 /* -------------------------- hdf_close --------------------- */
 /*
   We're about to close the file, do last minute HDF cleanup
   Also dump the number of records currently instatiated into the
-  unlimited dimensions.  
+  unlimited dimensions.
 
   BUG:  All unlimited dimensions will have the same size
 
@@ -3340,7 +3048,7 @@ BMR: handle->numrecs is used to write out the dim value for all unlimited
      vp->numrecs is used for HDF file and handle->numrecs is used for netCDF
      file.  I believe this is what the "BUG:" comment above means.  6/24/2013
 */
-intn 
+intn
 hdf_close(handle)
     NC *handle;
 {
@@ -3354,20 +3062,20 @@ hdf_close(handle)
     char       class[H4_MAX_NC_CLASS] = "";
     intn       ret_value = SUCCEED;
 #ifdef LATER
-    CONSTR(FUNC,"hdf_close"); 
+    CONSTR(FUNC,"hdf_close");
 #endif /* LATER */
 
 #ifdef HDF_CLOSE
     fprintf(stderr,"hdf_close: I've been called\n");
 #endif
-    
+
     /* loop through and detach from variable data VDatas */
-    if(handle->vars) 
+    if(handle->vars)
       {
-        tmp = handle->vars; 
+        tmp = handle->vars;
         vars = handle->vars->values;
-        
-        for(i = 0; i < tmp->count; i++) 
+
+        for(i = 0; i < tmp->count; i++)
           {
             vp = (NC_var **) vars;
 
@@ -3379,8 +3087,7 @@ hdf_close(handle)
                       fprintf(stderr,"hdf_close: Hendaccess failed for vdata aid %d\n",
                               (*vp)->aid);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
               }
 
@@ -3388,10 +3095,10 @@ hdf_close(handle)
             vars += tmp->szof;
           } /* end for each variable */
       }
-    
+
     /* loop through top level looking for unlimited dimensions.
        we write them out? -GV */
-    if(handle->flags & NC_NDIRTY) 
+    if(handle->flags & NC_NDIRTY)
       {
         id = -1;
         vg = Vattach(handle->hdf_file, handle->vgid, "r");
@@ -3401,14 +3108,13 @@ hdf_close(handle)
               fprintf(stderr,"hdf_close: Vattach failed for vgroup ref %d\n",
                       handle->vgid);
 #endif
-              ret_value = FAIL;
-              goto done;
+              HGOTO_FAIL(FAIL);
           }
 
         /* go through vgroup hierachy */
-        while((id = Vgetnext(vg, id)) != FAIL) 
+        while((id = Vgetnext(vg, id)) != FAIL)
           {
-            if(Visvg(vg, id)) 
+            if(Visvg(vg, id))
               {
                 dim = Vattach(handle->hdf_file, id, "r");
                 if (FAIL == dim)
@@ -3417,8 +3123,7 @@ hdf_close(handle)
                       fprintf(stderr,"hdf_close: Vattach failed for vgroup ref %d\n",
                               id);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
 
@@ -3428,28 +3133,26 @@ hdf_close(handle)
                       fprintf(stderr,"hdf_close: Vgetclass failed for vgroup ref %d\n",
                               id);
 #endif
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
                 /* look for proper vgroup */
-                if(!HDstrcmp(class, _HDF_UDIMENSION)) 
+                if(!HDstrcmp(class, _HDF_UDIMENSION))
                   {
                     sub_id = -1;
                     /* look for vdata in vgroup */
-                    while((sub_id = Vgetnext(dim, sub_id)) != FAIL) 
+                    while((sub_id = Vgetnext(dim, sub_id)) != FAIL)
                       {
-                        if(Visvs(dim, sub_id)) 
+                        if(Visvs(dim, sub_id))
                           { /* yes, attach to vdata */
                             vs = VSattach(handle->hdf_file, sub_id, "w");
-                            if(vs == FAIL) 
+                            if(vs == FAIL)
                               {
 #ifdef HDF_CLOSE
                                   fprintf(stderr,"hdf_close: VSattach failed for vdata ref %d\n",
                                           sub_id);
 #endif
-                                  ret_value = FAIL;
-                                  goto done;
+                                  HGOTO_FAIL(FAIL);
                                   /* HEprint(stdout, 0); */
                               }
                             /* get class of vdata */
@@ -3459,13 +3162,12 @@ hdf_close(handle)
                                   fprintf(stderr,"hdf_close: VSgetclass failed for vdata ref %d\n",
                                           sub_id);
 #endif
-                                  ret_value = FAIL;
-                                  goto done;
+                                  HGOTO_FAIL(FAIL);
                               }
 
                             /* are these dimension vdatas? */
-                            if(!HDstrcmp(class, DIM_VALS) 
-                               || !HDstrcmp(class, DIM_VALS01)) 
+                            if(!HDstrcmp(class, DIM_VALS)
+                               || !HDstrcmp(class, DIM_VALS01))
                               { /* yes */
                                 int32 val = handle->numrecs;
 
@@ -3475,8 +3177,7 @@ hdf_close(handle)
                                       fprintf(stderr,"hdf_close: VSsetfields failed for vdata ref %d\n",
                                               sub_id);
 #endif
-                                      ret_value = FAIL;
-                                      goto done;
+                                      HGOTO_FAIL(FAIL);
                                   }
 
                                 if (FAIL == VSseek(vs, 0))
@@ -3485,8 +3186,7 @@ hdf_close(handle)
                                       fprintf(stderr,"hdf_close: VSseek failed for vdata ref %d\n",
                                               sub_id);
 #endif
-                                      ret_value = FAIL;
-                                      goto done;
+                                      HGOTO_FAIL(FAIL);
                                   }
 
                                 /* write out dimension vdatas? */
@@ -3496,8 +3196,7 @@ hdf_close(handle)
                                       fprintf(stderr,"hdf_close: VSwrite failed for vdata ref %d\n",
                                               sub_id);
 #endif
-                                      ret_value = FAIL;
-                                      goto done;
+                                      HGOTO_FAIL(FAIL);
                                   }
 
                             }
@@ -3509,8 +3208,7 @@ hdf_close(handle)
                                   fprintf(stderr,"hdf_close: VSdetach failed for vdata ref %d\n",
                                           sub_id);
 #endif
-                                  ret_value = FAIL;
-                                  goto done;
+                                  HGOTO_FAIL(FAIL);
                               }
 
                         } /* end if vdata */
@@ -3521,8 +3219,7 @@ hdf_close(handle)
                   {
                       fprintf(stderr,"hdf_close: Vdetach failed for vgroup ref %d\n",
                               id);
-                      ret_value = FAIL;
-                      goto done;
+                      HGOTO_FAIL(FAIL);
                   }
 
             }/* end if vgroup */
@@ -3534,24 +3231,23 @@ hdf_close(handle)
               fprintf(stderr,"hdf_close: Vdetach failed for vgroup ref %d\n",
                       handle->vgid);
 #endif
-              ret_value = FAIL;
-              goto done;
+              HGOTO_FAIL(FAIL);
           }
 
     } /* end if we need to flush out unlimited dimensions? */
 
 
 done:
-  if(ret_value == FAIL)   
+  if(ret_value == FAIL)
     { /* Error condition cleanup */
 
     } /* end if */
 
   /* Normal function cleanup */
-  return ret_value;    
+  return ret_value;
 } /* hdf_close */
 
-/*******************************************************************************/                
+/*******************************************************************************/
 #endif /* HDF */
 
 /*
@@ -3561,38 +3257,38 @@ done:
 int NC_xlen_cdf(cdf)
 NC *cdf ;
 {
-	int len = 8 ;
+    int len = 8 ;
 
-	if(cdf == NULL)
-		return(0) ;
+    if(cdf == NULL)
+        return(0) ;
 
-	len += NC_xlen_array(cdf->dims) ;
-	len += NC_xlen_array(cdf->attrs) ;
-	len += NC_xlen_array(cdf->vars) ;
+    len += NC_xlen_array(cdf->dims) ;
+    len += NC_xlen_array(cdf->attrs) ;
+    len += NC_xlen_array(cdf->vars) ;
 
-	return(len) ;
+    return(len) ;
 }
 
 
-#define RECPOS	4L 	/* seek index of numrecs value */
+#define RECPOS    4L     /* seek index of numrecs value */
 bool_t
 xdr_numrecs(xdrs, handle)
-	XDR *xdrs;
-	NC *handle;
+    XDR *xdrs;
+    NC *handle;
 {
 
 #ifdef HDF
-    if(handle->file_type == HDF_FILE) 
+    if(handle->file_type == HDF_FILE)
         return TRUE; /* hmm...why? */
 #endif
 
-	if( (handle->flags & NC_NOFILL)
-		&& xdrs->x_op == XDR_ENCODE
-		&& handle->begin_rec > 0)
+    if( (handle->flags & NC_NOFILL)
+        && xdrs->x_op == XDR_ENCODE
+        && handle->begin_rec > 0)
       {
           /*
-           * we need to write something just beyond the last 
-           * record so we can successfully read back the 
+           * we need to write something just beyond the last
+           * record so we can successfully read back the
            * entire last record.
            */
           if( !xdr_setpos(xdrs, handle->begin_rec
@@ -3603,19 +3299,19 @@ xdr_numrecs(xdrs, handle)
             }
 #ifdef RDEBUG
           fprintf(stderr,"\txdr_numrecs %ld = %d + %ld * %d\n",
-                  xdr_getpos(xdrs), 
+                  xdr_getpos(xdrs),
                   handle->begin_rec, handle->numrecs, handle->recsize) ;
 #endif /*  RDEBUG */
           if( !xdr_u_long(xdrs, &(handle->numrecs)) )
               return(FALSE) ;
       }
 
-	if( !xdr_setpos(xdrs, RECPOS) )
+    if( !xdr_setpos(xdrs, RECPOS) )
       {
           nc_serror("Can't set position to RECPOS") ;
           return(FALSE) ;
       }
-	return( xdr_u_long(xdrs, &(handle->numrecs)) ) ;
+    return( xdr_u_long(xdrs, &(handle->numrecs)) ) ;
 }
 
 static bool_t
@@ -3639,25 +3335,25 @@ xdr_NC_fill(xdrs, vp)
 XDR *xdrs ;
 NC_var *vp ;
 {
-	char fillp[2*sizeof(double)] ;
-	bool_t stat ;
-	bool_t (*xdr_NC_fnct)() ;
-	u_long alen = vp->len ;
-	NC_attr **attr = NULL ;
+    char fillp[2*sizeof(double)] ;
+    bool_t stat ;
+    bool_t (*xdr_NC_fnct)() ;
+    u_long alen = vp->len ;
+    NC_attr **attr = NULL ;
 
 
-	/*
-	 * set up fill value
-	 */
-	/* start with the default */
-	NC_arrayfill((Void *)fillp, (size_t)2*sizeof(double),
+    /*
+    * set up fill value
+    */
+    /* start with the default */
+    NC_arrayfill((Void *)fillp, (size_t)2*sizeof(double),
                  vp->type) ;
 
-	/* 
-	 * if there is a valid user defined value, use it instead
-	 */
-	attr = NC_findattr(&vp->attrs, _FillValue) ;
-	if( attr != NULL )
+    /*
+    * if there is a valid user defined value, use it instead
+    */
+    attr = NC_findattr(&vp->attrs, _FillValue) ;
+    if( attr != NULL )
       {
           if( (*attr)->data->type != vp->type || (*attr)->data->count != 1 )
               NCadvise(NC_EBADTYPE, "var %s: _FillValue type mismatch",
@@ -3678,7 +3374,9 @@ NC_var *vp ;
     case NC_BYTE :
     case NC_CHAR :
         alen /= 4 ;
-        xdr_NC_fnct = xdr_4bytes ;
+         /* xdr_NC_fnct = xdr_4bytes ;
+          *  */
+        xdr_NC_fnct = xdr_bytes ;
         break ;
     case NC_SHORT :
         alen /= 4 ;
@@ -3686,17 +3384,13 @@ NC_var *vp ;
         break ;
     case NC_LONG :
         alen /= 4 ;
-#if defined __alpha || (_MIPS_SZLONG == 64) || defined __ia64 || (defined __sun && defined _LP64) || defined AIX5L64 || defined __x86_64__ || defined __powerpc64__ 
         xdr_NC_fnct = xdr_int ;
-#else
-        xdr_NC_fnct = xdr_long ;
-#endif
-        break ;	
+        break ;
     case NC_FLOAT :
         alen /= 4 ;
         xdr_NC_fnct = xdr_float ;
         break ;
-    case NC_DOUBLE : 
+    case NC_DOUBLE :
         alen /= 8 ;
         xdr_NC_fnct = xdr_double ;
         break ;
@@ -3708,7 +3402,7 @@ NC_var *vp ;
     /* write out fill values */
     for(stat = TRUE ; stat && (alen > 0) ; alen--)
       {
-          stat = (*xdr_NC_fnct)(xdrs,fillp) ;	
+          stat = (*xdr_NC_fnct)(xdrs,fillp) ;
       }
 
     if(!stat)
@@ -3716,7 +3410,7 @@ NC_var *vp ;
           NCadvise(NC_EXDR, "xdr_NC_fill") ;
           return(FALSE) ;
       }
-		
+
     return(TRUE) ;
 }
 

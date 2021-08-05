@@ -220,14 +220,14 @@ endmacro ()
 
 #-------------------------------------------------------------------------------
 macro (TARGET_C_PROPERTIES wintarget libtype)
-  target_compile_options(${wintarget} PRIVATE
-      $<$<C_COMPILER_ID:MSVC>:${WIN_COMPILE_FLAGS}>
-      $<$<CXX_COMPILER_ID:MSVC>:${WIN_COMPILE_FLAGS}>
-  )
-  target_link_libraries(${wintarget} INTERFACE
-      $<$<C_COMPILER_ID:MSVC>:${WIN_LINK_FLAGS}>
-      $<$<CXX_COMPILER_ID:MSVC>:${WIN_LINK_FLAGS}>
-  )
+  # target_compile_options(${wintarget} PRIVATE
+  #     $<$<C_COMPILER_ID:MSVC>:${WIN_COMPILE_FLAGS}>
+  #     $<$<CXX_COMPILER_ID:MSVC>:${WIN_COMPILE_FLAGS}>
+  # )
+  # target_link_libraries(${wintarget} INTERFACE
+  #     $<$<C_COMPILER_ID:MSVC>:${WIN_LINK_FLAGS}>
+  #     $<$<CXX_COMPILER_ID:MSVC>:${WIN_LINK_FLAGS}>
+  # )
 endmacro ()
 
 #-----------------------------------------------------------------------------

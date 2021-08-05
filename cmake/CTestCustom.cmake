@@ -1,16 +1,21 @@
+# CTestCustom.cmake
 set (CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1500)
 
 set (CTEST_CUSTOM_WARNING_EXCEPTION
     ${CTEST_CUSTOM_WARNING_EXCEPTION}
-    "note.*expected.*void.*but argument is of type.*volatile"
-    "SZIP.src.*:[ \t]*warning"
-    "jpeg.src.*:[ \t]*warning"
-    "POSIX name for this item is deprecated"
-    "disabling jobserver mode"
-    "config.cmake.xlatefile.c"
+    ".*note.*expected.*void.*but argument is of type.*volatile.*"
+    "src.ZLIB.*:[ \t]*warning"
+    "warning LNK4197:.*ZLIB-prefix"
+    "src.SZIP.*:[ \t]*warning"
+    "warning LNK4197:.*SZIP-prefix"
+    "src.JPEG.*:[ \t]*warning"
+    "warning LNK4197:.*JPEG-prefix"
+    ".*POSIX name for this item is deprecated.*"
+    ".*disabling jobserver mode.*"
+    ".*warning.*implicit declaration of function.*"
+    ".*note: expanded from macro.*"
 )
- 
- 
+
 set (CTEST_CUSTOM_MEMCHECK_IGNORE
     ${CTEST_CUSTOM_MEMCHECK_IGNORE}
     hdfpack-clear-refs
@@ -95,7 +100,7 @@ set (CTEST_CUSTOM_MEMCHECK_IGNORE
     HDF_FORTRAN-clearall-objects
     hdfgif-clear-refs
     ncdump-clearall-objects
-    NC_TEST-clearall-objects                            
+    NC_TEST-clearall-objects
     HEDIT-hdfed.input1
     HEDIT-ristosds.input1
 )

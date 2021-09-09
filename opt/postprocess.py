@@ -15,6 +15,7 @@ import fileinput
 import os
 import sys
 import shutil
+import subprocess
 
 class bcolors:
     HEADER = '\033[95m'
@@ -80,3 +81,6 @@ if os.path.exists(ovr_path):
             if not filename.startswith("."):
                 color_print("Overwrite " + dst_file, False, 'LRED')
                 shutil.copyfile(src_file, dst_file)
+
+# apply patch
+a = subprocess.Popen(['git', 'apply', './opt/winsock2_define.patch'], cwd = os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

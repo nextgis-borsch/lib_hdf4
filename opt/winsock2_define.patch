@@ -1,0 +1,14 @@
+diff --git a/cmake/h4config.h.in b/cmake/h4config.h.in
+index 4084875..a77c676 100644
+--- a/cmake/h4config.h.in
++++ b/cmake/h4config.h.in
+@@ -50,6 +50,9 @@
+ /* Define to 1 if you have the <io.h> header file. */
+ #cmakedefine H4_HAVE_IO_H @H4_HAVE_IO_H@
+ 
++/* Define to 1 if you have the <winsock2.h> header file. */
++#cmakedefine H4_HAVE_WINSOCK2_H @H4_HAVE_WINSOCK2_H@
++
+ /* Define to 1 if you have the <jpeglib.h> header file. */
+ #cmakedefine H4_HAVE_JPEGLIB_H @H4_HAVE_JPEGLIB_H@
+ 
